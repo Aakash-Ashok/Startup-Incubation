@@ -17,9 +17,17 @@ class StartupProfile(models.Model):
 class Employee(models.Model):
     startup = models.ForeignKey(StartupProfile, on_delete=models.CASCADE, related_name='employees')
     name = models.CharField(max_length=255)
-    role = models.CharField(max_length=100, blank=True, null=True)
+    role = models.CharField(max_length=100, blank=True, null=True)  # e.g., Developer, Designer
     email = models.EmailField(blank=True, null=True)  # optional
+    phone_number = models.CharField(max_length=15, blank=True, null=True)  # optional contact
+    profile_picture = models.URLField(blank=True, null=True)
+    linkedin_profile = models.URLField(blank=True, null=True)
+    github_profile = models.URLField(blank=True, null=True)
+    skills = models.TextField(blank=True, null=True)  # comma-separated skills or JSON
+    date_of_joining = models.DateField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)  # to track current employees
     added_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # track last update
 
     def __str__(self):
         return f"{self.name} ({self.startup.startup_name})"

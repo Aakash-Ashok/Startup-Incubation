@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-
+from django.conf import settings
 from .forms import StartupSignupForm, StartupProfileForm, ProjectForm, EmployeeForm, FundingForm, MentorshipForm
 from accounts.supabase_helper import upload_to_supabase
 from projects.models import Project, ProjectProposal ,ProjectAssignment
@@ -78,6 +78,13 @@ def startup_dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
+
+@login_required
+def profile_detail(request):
+    profile = request.user.startup_profile
+    return render(request, 'startup/profile_detail.html', {'profile': profile})
+
+
 # -----------------------------
 # 3️⃣ Project CRUD
 # -----------------------------
@@ -132,6 +139,19 @@ def update_project(request, project_id):
     else:
         form = ProjectForm(instance=project, startup=request.user.startup_profile)
     return render(request, 'startup/create_project.html', {'form': form, 'update': True})
+
+
+@login_required
+def project_detail(request, project_id):
+    project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
+    proposals = project.proposals.all()
+    assigned_employees = project.employees_assigned.all()
+    context = {
+        'project': project,
+        'proposals': proposals,
+        'assigned_employees': assigned_employees,
+    }
+    return render(request, 'project_detail.html', context)
 
 @login_required
 def delete_project(request, project_id):
@@ -189,32 +209,72 @@ def reject_proposal(request, proposal_id):
 @login_required
 def add_employee(request):
     if request.method == 'POST':
-        form = EmployeeForm(request.POST)
+        form = EmployeeForm(request.POST, request.FILES)  # <-- include request.FILES
         if form.is_valid():
             employee = form.save(commit=False)
             employee.startup = request.user.startup_profile
+
+            # Handle profile picture upload to Supabase
+            profile_file = request.FILES.get('profile_picture')
+            if profile_file:
+                from accounts.supabase_helper import upload_to_supabase
+                profile_url = upload_to_supabase(profile_file, folder='employee_profiles')
+                if profile_url:
+                    employee.profile_picture = profile_url
+
             employee.save()
             return redirect('startup_employees')
     else:
         form = EmployeeForm()
-    return render(request, 'startup/add_employee.html', {'form': form})
+    return render(request, 'add_employee.html', {
+        'form': form,
+        'profile': request.user.startup_profile,
+        'SUPABASE_URL': settings.SUPABASE_URL,
+        'SUPABASE_KEY': settings.SUPABASE_KEY
+    })
 
-@login_required
-def startup_employees(request):
-    employees = request.user.startup_profile.employees.all()
-    return render(request, 'startup/employee_list.html', {'employees': employees})
 
 @login_required
 def update_employee(request, employee_id):
     employee = get_object_or_404(Employee, id=employee_id, startup=request.user.startup_profile)
     if request.method == 'POST':
-        form = EmployeeForm(request.POST, instance=employee)
+        form = EmployeeForm(request.POST, request.FILES, instance=employee)  # <-- include request.FILES
         if form.is_valid():
-            form.save()
+            employee = form.save(commit=False)
+            profile_file = request.FILES.get('profile_picture')
+            if profile_file:
+                from accounts.supabase_helper import upload_to_supabase
+                profile_url = upload_to_supabase(profile_file, folder='employee_profiles')
+                if profile_url:
+                    employee.profile_picture = profile_url
+            employee.save()
+            form.save_m2m()
             return redirect('startup_employees')
     else:
         form = EmployeeForm(instance=employee)
     return render(request, 'startup/add_employee.html', {'form': form, 'update': True})
+
+
+@login_required
+def startup_employees(request):
+    # Get the startup profile for the logged-in user
+    profile = request.user.startup_profile
+
+    # Get all employees related to this startup
+    employees = profile.employees.all()
+
+    # Pass both profile and employees to the template
+    context = {
+        'profile': profile,
+        'employees': employees,
+    }
+    return render(request, 'employee_list.html', context)
+
+@login_required
+def employee_detail(request, employee_id):
+    employee = get_object_or_404(Employee, id=employee_id, startup=request.user.startup_profile)
+    return render(request, 'employee_detail.html', {'employee': employee})
+
 
 @login_required
 def delete_employee(request, employee_id):
@@ -222,7 +282,7 @@ def delete_employee(request, employee_id):
     if request.method == 'POST':
         employee.delete()
         return redirect('startup_employees')
-    return render(request, 'startup/delete_employee_confirm.html', {'employee': employee})
+    return render(request, 'delete_employee_confirm.html', {'employee': employee})
 
 # -----------------------------
 # 6️⃣ Notifications
@@ -238,6 +298,16 @@ def mark_notification_read(request, notification_id):
     notification.read = True
     notification.save()
     return redirect('notifications_list')
+
+@login_required
+def notification_detail(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    if not notification.read:
+        notification.read = True
+        notification.save()
+    return render(request, 'startup/notification_detail.html', {'notification': notification})
+
+
 
 # -----------------------------
 # 7️⃣ Funding
@@ -276,6 +346,12 @@ def update_funding(request, funding_id):
     else:
         form = FundingForm(instance=funding)
     return render(request, 'startup/create_funding.html', {'form': form, 'update': True})
+
+@login_required
+def funding_detail(request, funding_id):
+    funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
+    return render(request, 'startup/funding_detail.html', {'funding': funding})
+
 
 @login_required
 def delete_funding(request, funding_id):
@@ -322,6 +398,12 @@ def update_mentorship(request, session_id):
     else:
         form = MentorshipForm(instance=session)
     return render(request, 'startup/create_mentorship.html', {'form': form, 'update': True})
+
+@login_required
+def mentorship_detail(request, session_id):
+    session = get_object_or_404(MentorshipSession, id=session_id, startup=request.user.startup_profile)
+    return render(request, 'startup/mentorship_detail.html', {'session': session})
+
 
 @login_required
 def delete_mentorship(request, session_id):

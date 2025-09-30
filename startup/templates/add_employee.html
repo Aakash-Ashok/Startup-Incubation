@@ -1,0 +1,160 @@
+{% extends 'base_startup.html' %}
+
+{% block title %}Add Employee - {{ profile.startup_name }}{% endblock %}
+{% block active_employees %}active{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="page-header">
+        <a href="{% url 'startup_employees' %}" class="back-btn">← Back to Employees</a>
+        <h2>👤 Add New Employee</h2>
+        <p>Fill in the details to add a new employee to your startup.</p>
+    </div>
+</div>
+
+<form method="POST" class="employee-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-columns">
+
+        <!-- Left Panel -->
+        <div class="form-left panel">
+            <h3>Personal Info</h3>
+            <div class="form-group">
+                <label for="id_name">Full Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="error">{{ form.name.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_role">Role</label>
+                {{ form.role }}
+                {% if form.role.errors %}<div class="error">{{ form.role.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="error">{{ form.email.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_phone_number">Phone Number</label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}<div class="error">{{ form.phone_number.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_date_of_joining">Date of Joining</label>
+                {{ form.date_of_joining }}
+                {% if form.date_of_joining.errors %}<div class="error">{{ form.date_of_joining.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label for="id_is_active">Currently Active</label>
+                {{ form.is_active }}
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="form-right panel">
+            <h3>Online Profiles & Skills</h3>
+
+            <div class="form-group">
+                <label>Profile Picture</label>
+                <input type="hidden" id="id_profile_picture" name="profile_picture"
+                    value="{{ form.profile_picture.value }}">
+                <div class="file-upload" id="profile-upload">
+                    <input type="file" id="profile_file_input" accept="image/*">
+                    <div class="upload-text">Drag & drop image here or click to upload</div>
+                    <div id="profile-preview" class="file-preview">
+                        {% if form.profile_picture.value %}
+                        <img src="{{ form.profile_picture.value }}">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_linkedin_profile">LinkedIn Profile</label>
+                {{ form.linkedin_profile }}
+                {% if form.linkedin_profile.errors %}<div class="error">{{ form.linkedin_profile.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_github_profile">GitHub Profile</label>
+                {{ form.github_profile }}
+                {% if form.github_profile.errors %}<div class="error">{{ form.github_profile.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_skills">Skills</label>
+                {{ form.skills }}
+                {% if form.skills.errors %}<div class="error">{{ form.skills.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <button type="submit" class="btn submit-btn">Add Employee</button>
+</form>
+
+<!-- Styles -->
+<style>
+    /* Keep all your existing CSS as-is */
+    .header-wrapper {
+        margin: 20px 30px 0 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* ... rest of your existing CSS ... */
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+<script>
+    const supabaseUrl = "{{ SUPABASE_URL }}";
+    const supabaseKey = "{{ SUPABASE_KEY }}";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const profileUpload = document.getElementById('profile-upload');
+    const profileInput = document.getElementById('profile_file_input');
+    const profileUrlField = document.getElementById('id_profile_picture');
+    const profilePreview = document.getElementById('profile-preview');
+
+    async function uploadToSupabase(file) {
+        try {
+            const filePath = `employees/profile-${Date.now()}-${file.name}`;
+            const { data, error } = await supabase.storage.from('Startup').upload(filePath, file, { upsert: true });
+            if (error) {
+                alert('Upload failed: ' + error.message);
+                return;
+            }
+
+            const { publicUrl } = supabase.storage.from('Startup').getPublicUrl(filePath);
+            profileUrlField.value = publicUrl;
+            profilePreview.innerHTML = `<img src="${publicUrl}">`;
+        } catch (err) {
+            console.error('Supabase Upload Error:', err);
+            alert('Upload failed, check console.');
+        }
+    }
+
+    profileUpload.addEventListener('click', () => profileInput.click());
+    profileUpload.addEventListener('dragover', e => { e.preventDefault(); profileUpload.classList.add('dragover'); });
+    profileUpload.addEventListener('dragleave', () => profileUpload.classList.remove('dragover'));
+    profileUpload.addEventListener('drop', async e => {
+        e.preventDefault();
+        profileUpload.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) await uploadToSupabase(file);
+    });
+
+    profileInput.addEventListener('change', async () => {
+        const file = profileInput.files[0];
+        if (file) await uploadToSupabase(file);
+    });
+</script>
+{% endblock %}

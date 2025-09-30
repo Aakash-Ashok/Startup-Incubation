@@ -1,0 +1,247 @@
+{% extends 'base_startup.html' %}
+
+{% block title %}Employee Details - {{ employee.name }}{% endblock %}
+{% block active_employees %}active{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="page-header">
+        <a href="{% url 'startup_employees' %}" class="back-btn">← Back to Employees</a>
+        <h2>👤 Employee Details</h2>
+        <p>View and edit all employee information.</p>
+    </div>
+</div>
+
+<div class="panel employee-panel">
+    <!-- Display Info -->
+    <div id="employeeView">
+        <div class="employee-header">
+            {% if employee.profile_picture %}
+            <img src="{{ employee.profile_picture.url }}" alt="{{ employee.name }}" class="employee-pic">
+            {% else %}
+            <div class="employee-pic-placeholder">{{ employee.name|slice:":1" }}</div>
+            {% endif %}
+            <div>
+                <h3>{{ employee.name }}</h3>
+                <p class="role">{{ employee.role }}</p>
+            </div>
+        </div>
+
+        <div class="employee-details">
+            <p><strong>Email:</strong> {{ employee.email }}</p>
+            <p><strong>Phone:</strong> {{ employee.phone_number }}</p>
+            <p><strong>Date of Joining:</strong> {{ employee.date_of_joining }}</p>
+            <p><strong>Currently Active:</strong> {{ employee.is_active|yesno:"Yes,No" }}</p>
+            <p><strong>LinkedIn:</strong> <a href="{{ employee.linkedin_profile }}" target="_blank">{{employee.linkedin_profile }}</a></p>
+            <p><strong>GitHub:</strong> <a href="{{ employee.github_profile }}" target="_blank">{{ employee.github_profile }}</a></p>
+            <p><strong>Skills:</strong> {{ employee.skills }}</p>
+        </div>
+
+        <div class="view-buttons">
+            <button class="btn edit-btn" onclick="toggleEdit()">Edit</button>
+            <a href="{% url 'delete_employee' employee.id %}" class="btn delete-btn"
+                onclick="return confirm('Are you sure you want to delete this employee?');">Delete</a>
+        </div>
+    </div>
+
+    <!-- Edit Form (Initially Hidden) -->
+    <form method="POST" enctype="multipart/form-data" class="employee-form" id="employeeForm" style="display:none;">
+        {% csrf_token %}
+        <div class="form-columns">
+            <div class="form-left">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" value="{{ employee.name }}">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" name="role" value="{{ employee.role }}">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ employee.email }}">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" name="phone_number" value="{{ employee.phone_number }}">
+                </div>
+                <div class="form-group">
+                    <label>Date of Joining</label>
+                    <input type="date" name="date_of_joining" value="{{ employee.date_of_joining }}">
+                </div>
+                <div class="form-group">
+                    <label>Currently Active</label>
+                    <input type="checkbox" name="is_active" {% if employee.is_active %}checked{% endif %}>
+                </div>
+            </div>
+            <div class="form-right">
+                <div class="form-group">
+                    <label>Profile Picture</label>
+                    <input type="file" name="profile_picture">
+                </div>
+                <div class="form-group">
+                    <label>LinkedIn</label>
+                    <input type="url" name="linkedin_profile" value="{{ employee.linkedin_profile|default:'' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label>GitHub</label>
+                    <input type="url" name="github_profile" value="{{ employee.github_profile|default:'' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label>Skills</label>
+                    <textarea name="skills">{{ employee.skills|default:'' }}</textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" class="btn submit-btn">Save Changes</button>
+            <button type="button" class="btn cancel-btn" onclick="cancelEdit()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .header-wrapper {
+        margin-left: 100px;
+        margin-top: 20px;
+    }
+
+    .back-btn {
+        color: #c62828;
+        text-decoration: none;
+        margin-bottom: 12px;
+        display: inline-block;
+    }
+
+    .panel {
+        background: #f9f9f9;
+        padding: 25px;
+        border-radius: 14px;
+        width: 80%;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .employee-header {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .employee-pic {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .employee-pic-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #c62828;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .employee-details p {
+        margin-bottom: 8px;
+    }
+
+    .form-columns {
+        display: flex;
+        gap: 30px;
+    }
+
+    .form-left,
+    .form-right {
+        flex: 1;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    input,
+    textarea {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 0.95rem;
+    }
+
+    textarea {
+        min-height: 80px;
+    }
+
+    .form-buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn.submit-btn {
+        background: #c62828;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn.submit-btn:hover {
+        background: #e53935;
+    }
+
+    .btn.delete-btn {
+        background: #eee;
+        color: #c62828;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+    }
+
+    .btn.edit-btn {
+        background: #1976d2;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn.edit-btn:hover {
+        background: #1565c0;
+    }
+
+    .btn.cancel-btn {
+        background: #999;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    function toggleEdit() {
+        document.getElementById('employeeView').style.display = 'none';
+        document.getElementById('employeeForm').style.display = 'block';
+    }
+    function cancelEdit() {
+        document.getElementById('employeeView').style.display = 'block';
+        document.getElementById('employeeForm').style.display = 'none';
+    }
+</script>
+{% endblock %}

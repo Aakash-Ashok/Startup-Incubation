@@ -21,6 +21,7 @@ class StartupSignupForm(UserCreationForm):
         return user
 
 class StartupProfileForm(forms.ModelForm):
+    logo = forms.ImageField(required=False)
     class Meta:
         model = StartupProfile
         fields = ['startup_name', 'description', 'website', 'founded_date', 'industry', 'logo']
@@ -54,9 +55,32 @@ class ProjectForm(forms.ModelForm):
             
 
 class EmployeeForm(forms.ModelForm):
+    date_of_joining = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    profile_picture = forms.ImageField(required=False)
+
     class Meta:
         model = Employee
-        fields = ('name', 'role', 'email')
+        fields = [
+            'name', 'role', 'email', 'phone_number', 'profile_picture',
+            'linkedin_profile', 'github_profile', 'skills', 'date_of_joining', 'is_active'
+        ]
+        widgets = {
+            'skills': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Python, Django, React'}),
+            'role': forms.TextInput(attrs={'placeholder': 'e.g., Developer, Designer'}),
+        }
+        labels = {
+            'is_active': 'Currently Active',
+            'profile_picture': 'Upload Profile Picture',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Optional: Customize labels or help texts
+        self.fields['is_active'].label = "Currently Active"
+        self.fields['profile_picture'].label = "Upload Profile Picture"
         
         
 
