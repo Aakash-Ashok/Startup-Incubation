@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Startup & Freelancer Incubation Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #b71c1c;
+            /* deep red background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-wrapper {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .login-wrapper img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            color: #b71c1c;
+            font-weight: 600;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 0.95rem;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #b71c1c;
+            box-shadow: 0 0 5px rgba(183, 28, 28, 0.3);
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #b71c1c;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #8e1414;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9rem;
+        }
+
+        .login-footer {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .login-footer a {
+            color: #b71c1c;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media screen and (max-width: 450px) {
+            .login-wrapper {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-wrapper">
+        <img src="{% static 'images/logo.png' %}" alt="Logo">
+        <h1>Login</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% if messages %}
+            {% for message in messages %}
+            <p class="error">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+            {{ form.as_p }}
+            <button type="submit">Login</button>
+        </form>
+        <div class="login-footer">
+            Don't have an account? <a href="{% url 'startup_signup' %}">Sign Up</a>
+        </div>
+    </div>
+</body>
+
+</html>
