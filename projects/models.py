@@ -7,7 +7,7 @@ class Project(models.Model):
     startup = models.ForeignKey(StartupProfile, on_delete=models.CASCADE, related_name="projects")
     name = models.CharField(max_length=200)
     description = models.TextField()
-    requirements_file = models.URLField(blank=True, null=True, help_text="Supabase URL for requirements document")
+    requirements_file = models.FileField(upload_to='project_requirements/', blank=True, null=True)  # Local file storage
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=[
@@ -22,11 +22,11 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.name} ({self.startup.startup_name})"
 
-
 class ProjectProposal(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="proposals")
     freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE, related_name="proposals")
     proposal_text = models.TextField()
+    file = models.FileField(upload_to='proposal_attachments/')
     expected_timeline = models.CharField(max_length=100, blank=True, null=True)
     expected_payment = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     status = models.CharField(max_length=20, choices=[
@@ -51,6 +51,8 @@ class ProjectAssignment(models.Model):
         if self.freelancer:
             return f"{self.project.name} -> {self.freelancer.user.username}"
         return f"{self.project.name} -> {self.employee_name}"
+    
+    
 
 class Task(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks")

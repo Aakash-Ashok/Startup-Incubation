@@ -26,7 +26,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('startup/', include('startup.urls')),
     path('', views.login_view, name='login'),  
-    # path('freelancer/', include('freelancer.urls')),
+    path('freelancer/', include('freelancer.urls')),
     # path('mentor/', include('mentor.urls')),
     # path('investor/', include('investor.urls')),
 ]

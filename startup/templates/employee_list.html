@@ -19,13 +19,14 @@
 <div class="employee-cards">
     {% for employee in employees %}
     <div class="employee-card">
-        <div class="profile-pic">
-            {% if employee.profile_picture %}
-            <img src="{{ employee.profile_picture }}" alt="{{ employee.name }}">
-            {% else %}
-            <img src="{% static 'images/default-profile.png' %}" alt="No Image">
-            {% endif %}
-        </div>
+    <div class="profile-pic">
+        {% if employee.profile_picture %}
+        <img src="{{ employee.profile_picture.url }}" alt="{{ employee.name }}">
+        {% else %}
+        <img src="{% static 'images/default-profile.png' %}" alt="No Image">
+        {% endif %}
+    </div>
+
         <div class="employee-info">
             <h3>{{ employee.name }}</h3>
             <p class="role">{{ employee.role|default:"No role" }}</p>
@@ -43,7 +44,14 @@
 
 
 
-<style>
+<style>  
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    
     .header-wrapper {
         margin-left: 100px;
         margin-right: 30px;

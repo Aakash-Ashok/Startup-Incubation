@@ -1,0 +1,24 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Project Details{% endblock %}
+
+{% block content %}
+<h2 style="color:#1976d2;">{{ project.name }}</h2>
+
+<div style="background:#fff;padding:25px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.08);max-width:800px;">
+    <p><strong>Startup:</strong> {{ project.startup.startup_name }}</p>
+    <p><strong>Description:</strong><br>{{ project.description }}</p>
+    {% if project.requirements_file %}
+    <p><strong>Requirements File:</strong> <a href="{{ project.requirements_file.url }}" target="_blank">📎 View</a></p>
+    {% endif %}
+    <p><strong>Status:</strong> {{ project.status }}</p>
+
+    {% if proposal %}
+    <p style="color:green;margin-top:10px;">✅ You already submitted a proposal for this project.</p>
+    {% else %}
+    <a href="{% url 'freelancer_submit_proposal' project.id %}"
+        style="display:inline-block;background:#1976d2;color:white;padding:10px 15px;border-radius:8px;text-decoration:none;margin-top:15px;">
+        Submit Proposal
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

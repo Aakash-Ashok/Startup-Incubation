@@ -1,0 +1,33 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}My Proposals{% endblock %}
+
+{% block content %}
+<h2>📑 My Proposals</h2>
+
+{% if proposals %}
+<table style="width:100%;border-collapse:collapse;background:#fff;margin-top:25px;border-radius:8px;overflow:hidden;">
+    <tr style="background:#1976d2;color:#fff;">
+        <th style="padding:12px;text-align:left;">Project</th>
+        <th style="padding:12px;text-align:left;">Submitted On</th>
+        <th style="padding:12px;text-align:left;">Status</th>
+    </tr>
+    {% for p in proposals %}
+    <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:12px;">{{ p.project.name }}</td>
+        <td style="padding:12px;">{{ p.submitted_at|date:"M d, Y" }}</td>
+        <td style="padding:12px;">
+            {% if p.status == 'Pending' %}
+            <span style="color:#856404;background:#fff3cd;padding:4px 8px;border-radius:6px;">Pending</span>
+            {% elif p.status == 'Accepted' %}
+            <span style="color:#155724;background:#d4edda;padding:4px 8px;border-radius:6px;">Accepted</span>
+            {% else %}
+            <span style="color:#721c24;background:#f8d7da;padding:4px 8px;border-radius:6px;">Rejected</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p style="color:#777;">No proposals found.</p>
+{% endif %}
+{% endblock %}

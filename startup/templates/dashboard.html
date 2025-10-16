@@ -186,85 +186,143 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Notification toggle
-    const notif = document.querySelector('.header-right.notification');
-    const dropdown = notif.querySelector('.notification-dropdown');
-    notif.addEventListener('click', () => {
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    });
+    document.addEventListener('DOMContentLoaded', function () {
 
-    document.addEventListener('click', function (e) {
-        if (!notif.contains(e.target)) {
-            dropdown.style.display = 'none';
-        }
-    });
+        const chartOptions = {
+            responsive: true,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            plugins: { legend: { position: 'bottom' } }
+        };
 
-    // Chart Options
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom' },
-            tooltip: {
-                callbacks: {
-                    label: function (context) {
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const value = context.raw;
-                        const percentage = ((value / total) * 100).toFixed(1);
-                        return `${context.label}: ${value} (${percentage}%)`;
-                    }
-                }
-            }
-        },
-        animation: {
-            animateScale: true,
-            animateRotate: true
+        // Get canvas contexts
+        const projectCtx = document.getElementById('projectStatusChart').getContext('2d');
+        const proposalCtx = document.getElementById('proposalStatusChart').getContext('2d');
+        const fundingCtx = document.getElementById('fundingChart').getContext('2d');
+        const mentorshipCtx = document.getElementById('mentorshipChart').getContext('2d');
+
+        // Create gradients
+        function createGradient(ctx, color) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, color + '80'); // semi-transparent top
+            gradient.addColorStop(1, color + '10'); // very light bottom
+            return gradient;
         }
+
+        const projectGradient = createGradient(projectCtx, '#1976d2');
+        const proposalGradient = createGradient(proposalCtx, '#e53935');
+        const fundingGradient = createGradient(fundingCtx, '#43a047');
+        const mentorshipGradient = createGradient(mentorshipCtx, '#fb8c00');
+
+        // Initialize charts with initial data
+        const charts = {
+            projects: new Chart(projectCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Planned', 'Ongoing', 'Completed'],
+                    datasets: [{
+                        label: 'Projects',
+                        data: [{{ projects_open }}, {{ projects_in_progress }}, {{ projects_completed }}],
+            borderColor: '#1976d2',
+            backgroundColor: projectGradient,
+            pointBackgroundColor: '#1976d2',
+            pointRadius: 5,
+            fill: true,
+            tension: 0.4
+    }]
+            },
+        options: chartOptions
+        }),
+        proposals: new Chart(proposalCtx, {
+            type: 'line',
+            data: {
+                labels: ['Submitted', 'Approved', 'Rejected'],
+                datasets: [{
+                    label: 'Proposals',
+                    data: [{{ proposals_count }}, {{ proposals_approved }}, {{ proposals_rejected }}],
+            borderColor: '#e53935',
+            backgroundColor: proposalGradient,
+            pointBackgroundColor: '#e53935',
+            pointRadius: 5,
+            fill: true,
+            tension: 0.4
+                }]
+            },
+            options: chartOptions
+        }),
+            funding: new Chart(fundingCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Requested', 'Approved', 'Rejected'],
+                    datasets: [{
+                        label: 'Funding',
+                        data: [{{ funding_count }}, {{ funding_approved }}, {{ funding_rejected }}],
+                borderColor: '#43a047',
+                backgroundColor: fundingGradient,
+                pointBackgroundColor: '#43a047',
+                pointRadius: 5,
+                fill: true,
+                tension: 0.4
+                }]
+            },
+                options: chartOptions
+        }),
+                mentorship: new Chart(mentorshipCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Scheduled', 'Completed'],
+                        datasets: [{
+                            label: 'Mentorship Sessions',
+                            data: [{{ mentorship_count }}, {{ mentorship_completed }}],
+                    borderColor: '#fb8c00',
+                    backgroundColor: mentorshipGradient,
+                    pointBackgroundColor: '#fb8c00',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+                    options: chartOptions
+        })
     };
 
-    // Charts
-    const projectsChart = new Chart(document.getElementById('projectStatusChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Open', 'In Progress', 'Completed'],
-            datasets: [{ data: [{{ projects_open }}, {{ projects_in_progress }}, {{ projects_completed }}],
-    backgroundColor: ['#e53935', '#fb8c00', '#43a047']
-            }]
-        },
-    options: chartOptions
-    });
+    // Function to fetch live data
+    async function updateDashboard() {
+        try {
+            const response = await fetch("{% url 'dashboard_data' %}");
+            const data = await response.json();
 
-    const proposalsChart = new Chart(document.getElementById('proposalStatusChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Submitted', 'Approved', 'Rejected'],
-            datasets: [{ data: [{{ proposals_count }}, {{ proposals_approved }}, {{ proposals_rejected }}],
-    backgroundColor: ['#c62828', '#43a047', '#fb8c00']
-            }]
-        },
-    options: chartOptions
-    });
+            charts.projects.data.datasets[0].data = [
+                data.projects.planned,
+                data.projects.ongoing,
+                data.projects.completed
+            ];
+            charts.proposals.data.datasets[0].data = [
+                data.proposals.submitted,
+                data.proposals.approved,
+                data.proposals.rejected
+            ];
+            charts.funding.data.datasets[0].data = [
+                data.funding.requested,
+                data.funding.approved,
+                data.funding.rejected
+            ];
+            charts.mentorship.data.datasets[0].data = [
+                data.mentorship.scheduled,
+                data.mentorship.completed
+            ];
 
-    const fundingChart = new Chart(document.getElementById('fundingChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Requested', 'Approved', 'Rejected'],
-            datasets: [{ data: [{{ funding_count }}, {{ funding_approved }}, {{ funding_rejected }}],
-    backgroundColor: ['#e53935', '#43a047', '#fb8c00']
-            }]
-        },
-    options: chartOptions
-    });
+            // Update all charts
+            Object.values(charts).forEach(chart => chart.update());
 
-    const mentorshipChart = new Chart(document.getElementById('mentorshipChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Scheduled', 'Completed'],
-            datasets: [{ data: [{{ mentorship_count }}, {{ mentorship_completed }}],
-        backgroundColor: ['#e53935', '#43a047']
-    }]
-        },
-    options: chartOptions
-    });
+        } catch (error) {
+            console.error("Dashboard update failed:", error);
+        }
+    }
+
+    // 🔁 Auto-update every 10 seconds
+    setInterval(updateDashboard, 10000);
+});
 </script>
 {% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Submit Proposal{% endblock %}
+
+{% block content %}
+<h2>📤 Submit Proposal for "{{ project.name }}"</h2>
+
+<div style="background:#fff;padding:30px;border-radius:10px;max-width:700px;box-shadow:0 3px 8px rgba(0,0,0,0.08);">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit"
+            style="background:#1976d2;color:white;padding:10px 15px;border:none;border-radius:8px;font-size:15px;">
+            Submit Proposal
+        </button>
+    </form>
+</div>
+{% endblock %}

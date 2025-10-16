@@ -1,194 +1,239 @@
-{% extends 'startup/base.html' %}
+{% extends 'base_startup.html' %}
 {% load static %}
 
+{% block title %}Project Details - {{ project.name }}{% endblock %}
+
 {% block content %}
-<div class="flex-1 ml-64 p-10 bg-gray-50 min-h-screen transition-all duration-300">
-    <div class="max-w-5xl mx-auto bg-white p-10 rounded-2xl shadow-md border border-gray-200">
+<div class="page-container">
+
+    <!-- Project Card -->
+    <div class="project-card">
+        <!-- Breadcrumb / Back Link -->
+        <div class="breadcrumb">
+            <a href="{% url 'startup_projects' %}">← Back to Projects</a>
+        </div>
+
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Project Details</h1>
-            <div>
-                <button id="editBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                    Edit Project
-                </button>
-                <button type="button" id="deleteBtn"
-                    class="ml-3 px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                    Delete
-                </button>
+        <div class="card-header">
+            <h1>{{ project.name }}</h1>
+            <div class="card-actions">
+                <a href="{% url 'update_project' project.id %}" class="btn edit-btn">Edit</a>
+                <a href="{% url 'delete_project' project.id %}" class="btn delete-btn">Delete</a>
             </div>
         </div>
 
-        <!-- Edit Form -->
-        <form method="POST" enctype="multipart/form-data" id="editForm" class="space-y-6 hidden">
-            {% csrf_token %}
-            <div class="grid grid-cols-2 gap-6">
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                    {{ form.name }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    {{ form.status }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                    {{ form.start_date }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                    {{ form.end_date }}
-                </div>
-
-                <div class="col-span-2 flex items-center">
-                    {{ form.assigned_to_freelancers }}
-                    <label class="ml-2 text-gray-700">Assigned to Freelancers</label>
-                </div>
-
-                <div id="employeesField" class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign Employees</label>
-                    {{ form.employees_assigned }}
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Requirements File (URL)</label>
-                    {{ form.requirements_file_upload }}
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    {{ form.description }}
-                </div>
-            </div>
-
-            <div class="flex justify-end space-x-3 mt-8">
-                <button type="button" id="cancelBtn"
-                    class="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
-                    Cancel
-                </button>
-                <button type="submit"
-                    class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                    Save Changes
-                </button>
-            </div>
-        </form>
-
-        <!-- Display Mode -->
-        <div id="displayView" class="space-y-6">
-            <div class="grid grid-cols-2 gap-6">
-                <div>
-                    <p class="text-sm text-gray-500">Project Name</p>
-                    <p class="text-lg font-semibold">{{ project.name }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Status</p>
-                    <p class="text-lg font-semibold">{{ project.get_status_display }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Start Date</p>
-                    <p class="text-lg font-semibold">{{ project.start_date }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">End Date</p>
-                    <p class="text-lg font-semibold">{{ project.end_date|default:"—" }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Assigned to Freelancers</p>
-                    <p class="text-lg font-semibold">{{ project.assigned_to_freelancers|yesno:"Yes,No" }}</p>
-                </div>
-                {% if not project.assigned_to_freelancers %}
-                <div>
-                    <p class="text-sm text-gray-500">Assigned Employees</p>
-                    <p class="text-lg font-semibold">
-                        {% for emp in project.employees_assigned.all %}
-                        {{ emp.name }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                        None
-                        {% endfor %}
-                    </p>
-                </div>
-                {% endif %}
-                <div class="col-span-2">
-                    <p class="text-sm text-gray-500">Description</p>
-                    <p class="text-gray-800">{{ project.description }}</p>
-                </div>
-                {% if project.requirements_file %}
-                <div class="col-span-2">
-                    <p class="text-sm text-gray-500">Requirements File</p>
-                    <a href="{{ project.requirements_file }}" class="text-blue-600 hover:underline" target="_blank">
-                        View File
-                    </a>
-                </div>
-                {% endif %}
-            </div>
+        <!-- Status Badge -->
+        <div
+            class="status-badge {% if project.status == 'PLANNED' %}planned{% elif project.status == 'ONGOING' %}ongoing{% elif project.status == 'COMPLETED' %}completed{% endif %}">
+            {{ project.get_status_display }}
         </div>
+
+        <!-- Project Info -->
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">Start Date:</span>
+                <span>{{ project.start_date }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">End Date:</span>
+                <span>{{ project.end_date|default:"—" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Assigned to Freelancers:</span>
+                <span>{{ project.assigned_to_freelancers|yesno:"Yes,No" }}</span>
+            </div>
+            {% if not project.assigned_to_freelancers %}
+            <div class="info-item full-width">
+                <span class="label">Assigned Employees:</span>
+                <span>
+                    {% for emp in project.employees_assigned.all %}
+                    {{ emp.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}None{% endfor %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="section">
+            <span class="label">Description:</span>
+            <p>{{ project.description }}</p>
+        </div>
+
+        <!-- Requirements File -->
+        {% if project.requirements_file %}
+        <div class="section">
+            <span class="label">Requirements File:</span>
+            <a href="{{ project.requirements_file.url }}" target="_blank" download>View File</a>
+        </div>
+        {% endif %}
+
     </div>
 </div>
 
-<!-- Delete Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-96 text-center">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Delete Project</h2>
-        <p class="text-gray-600 mb-6">Are you sure you want to delete <strong>{{ project.name }}</strong>? This action
-            cannot be undone.</p>
-        <div class="flex justify-center space-x-4">
-            <button id="cancelDelete" class="px-5 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition">
-                Cancel
-            </button>
-            <form method="POST" action="{% url 'delete_project' project.id %}">
-                {% csrf_token %}
-                <button type="submit" class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                    Confirm Delete
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
+<style>
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    /* Page Container */
+    .page-container {
+        padding: 50px 20px;
+        min-height: 100vh;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
 
-<script>
-    const editBtn = document.getElementById('editBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const displayView = document.getElementById('displayView');
-    const editForm = document.getElementById('editForm');
-    const assignedToFreelancers = document.getElementById('id_assigned_to_freelancers');
-    const employeesField = document.getElementById('employeesField');
+    /* Project Card */
+    .project-card {
+        background: #fff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        max-width: 800px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-    const deleteBtn = document.getElementById('deleteBtn');
-    const deleteModal = document.getElementById('deleteModal');
-    const cancelDelete = document.getElementById('cancelDelete');
+    /* Breadcrumb */
+    .breadcrumb a {
+        font-size: 0.95rem;
+        color: #007bff;
+        text-decoration: none;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
 
-    // Toggle between view and edit
-    editBtn.addEventListener('click', () => {
-        displayView.classList.add('hidden');
-        editForm.classList.remove('hidden');
-    });
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
 
-    cancelBtn.addEventListener('click', () => {
-        editForm.classList.add('hidden');
-        displayView.classList.remove('hidden');
-    });
+    /* Card Header */
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
 
-    // Hide employees if freelancers is checked
-    function toggleEmployeesField() {
-        if (assignedToFreelancers.checked) {
-            employeesField.classList.add('hidden');
-        } else {
-            employeesField.classList.remove('hidden');
+    .card-header h1 {
+        font-size: 2rem;
+        color: #222;
+        margin: 0;
+    }
+
+    .card-actions .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 10px;
+        color: #fff;
+        transition: 0.2s;
+    }
+
+    .edit-btn {
+        background-color: #007bff;
+    }
+
+    .edit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+    }
+
+    .delete-btn:hover {
+        background-color: #b02a37;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #fff;
+        width: fit-content;
+    }
+
+    .status-badge.planned {
+        background-color: #6c757d;
+    }
+
+    .status-badge.ongoing {
+        background-color: #fd7e14;
+    }
+
+    .status-badge.completed {
+        background-color: #28a745;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-item.full-width {
+        grid-column: span 2;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    /* Sections */
+    .section {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .section p,
+    .section a {
+        margin-top: 5px;
+        color: #333;
+        line-height: 1.6;
+        text-decoration: none;
+    }
+
+    .section a {
+        color: #007bff;
+    }
+
+    .section a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media(max-width: 700px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .card-actions .btn {
+            margin: 5px 0 0 0;
         }
     }
-    assignedToFreelancers.addEventListener('change', toggleEmployeesField);
-    toggleEmployeesField();
-
-    // Delete modal toggle
-    deleteBtn.addEventListener('click', () => {
-        deleteModal.classList.remove('hidden');
-    });
-
-    cancelDelete.addEventListener('click', () => {
-        deleteModal.classList.add('hidden');
-    });
-</script>
+</style>
 {% endblock %}

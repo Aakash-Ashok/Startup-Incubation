@@ -1,11 +1,11 @@
 {% extends 'base_startup.html' %}
+{% load static %}
 
-{% block title %}Create Projects - {{ profile.startup_name }}{% endblock %}
+{% block title %}Create Project - {{ profile.startup_name }}{% endblock %}
 {% block active_projects %}active{% endblock %}
 
 {% block content %}
 
-<!-- Page Header -->
 <div class="header-wrapper">
     <div class="page-header">
         <a href="{% url 'startup_projects' %}" class="back-btn">← Back to Projects</a>
@@ -14,64 +14,33 @@
     </div>
 </div>
 
-<!-- Form Container -->
 <div class="form-container">
     <form method="POST" enctype="multipart/form-data" class="project-form">
         {% csrf_token %}
         <div class="form-columns">
 
-            <!-- Left Panel -->
+            <!-- Left Panel: Project Info -->
             <div class="form-left panel">
                 <h3>Project Information</h3>
-
                 <div class="form-group">
-                    <label for="id_name">Project Name</label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                    <div class="error">{{ form.name.errors }}</div>
-                    {% endif %}
+                    {{ form.name.label_tag }} {{ form.name }}
                 </div>
-
                 <div class="form-group">
-                    <label for="id_description">Description</label>
-                    {{ form.description }}
-                    {% if form.description.errors %}
-                    <div class="error">{{ form.description.errors }}</div>
-                    {% endif %}
+                    {{ form.description.label_tag }} {{ form.description }}
                 </div>
-
                 <div class="form-group">
-                    <label>Requirements File</label>
-                    <div class="file-upload" id="file-upload">
-                        <input type="file" id="requirements_file_input" name="requirements_file"
-                            accept=".pdf,.doc,.docx,.txt">
-                        <div class="upload-text">Drag & drop file here or tap to upload</div>
-                        <div class="file-preview" id="file-preview"></div>
-                    </div>
-                    {% if form.requirements_file.errors %}
-                    <div class="error">{{ form.requirements_file.errors }}</div>
-                    {% endif %}
+                    {{ form.requirements_file.label_tag }} {{ form.requirements_file }}
                 </div>
-
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="id_start_date">Start Date</label>
-                        {{ form.start_date }}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="id_end_date">End Date</label>
-                        {{ form.end_date }}
-                    </div>
+                    <div class="form-group">{{ form.start_date.label_tag }} {{ form.start_date }}</div>
+                    <div class="form-group">{{ form.end_date.label_tag }} {{ form.end_date }}</div>
                 </div>
-
                 <div class="form-group">
-                    <label for="id_status">Status</label>
-                    {{ form.status }}
+                    {{ form.status.label_tag }} {{ form.status }}
                 </div>
             </div>
 
-            <!-- Right Panel -->
+            <!-- Right Panel: Assignment -->
             <div class="form-right panel">
                 <h3>Assignment</h3>
 
@@ -96,12 +65,18 @@
 
 <!-- Styles -->
 <style>
+      .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
     .header-wrapper {
         text-align: center;
         margin-top: 30px;
     }
 
-    .header-wrapper h2 {
+    .page-header h2 {
         font-size: 2rem;
         color: #222;
     }
@@ -121,7 +96,6 @@
         color: #e53935;
     }
 
-    /* Centered Form Container */
     .form-container {
         display: flex;
         justify-content: center;
@@ -132,18 +106,15 @@
     .project-form {
         width: 90%;
         max-width: 1200px;
-        background: transparent;
         display: flex;
         flex-direction: column;
-        align-items: center;
     }
 
     .form-columns {
         display: flex;
-        justify-content: center;
         gap: 40px;
-        width: 100%;
         margin-top: 20px;
+        width: 100%;
     }
 
     .panel {
@@ -177,24 +148,14 @@
     .form-group input,
     .form-group select,
     .form-group textarea {
-        padding: 14px 16px;
-        border-radius: 10px;
+        padding: 12px 14px;
+        border-radius: 8px;
         border: 1px solid #ccc;
-        background: #fff;
     }
 
     textarea {
-        min-height: 120px;
+        min-height: 100px;
         resize: vertical;
-    }
-
-    .form-row {
-        display: flex;
-        gap: 20px;
-    }
-
-    .form-row .form-group {
-        flex: 1;
     }
 
     .checkbox-group {
@@ -203,38 +164,19 @@
         gap: 8px;
     }
 
-    .file-upload {
-        border: 2px dashed #ccc;
-        border-radius: 12px;
-        padding: 25px;
+    .form-actions {
         text-align: center;
-        transition: border-color 0.3s, background 0.3s;
-    }
-
-    .file-upload.dragover {
-        border-color: #c62828;
-        background: rgba(198, 40, 40, 0.05);
-    }
-
-    .upload-text {
-        font-size: 0.95rem;
-        color: #555;
-    }
-
-    .file-preview {
-        margin-top: 10px;
-        font-size: 0.9rem;
-        color: #333;
+        margin-top: 30px;
     }
 
     .btn.submit-btn {
         background: #c62828;
         color: white;
-        border: none;
-        padding: 14px 30px;
+        padding: 12px 30px;
         border-radius: 10px;
-        font-weight: 500;
+        border: none;
         font-size: 1rem;
+        font-weight: 500;
         transition: 0.2s;
     }
 
@@ -243,27 +185,27 @@
         transform: translateY(-2px);
     }
 
-    .form-actions {
-        text-align: center;
-        margin-top: 30px;
-    }
-
-    @media(max-width: 1000px) {
+    @media(max-width:1000px) {
         .form-columns {
             flex-direction: column;
-            align-items: center;
         }
 
         .panel {
             width: 100%;
         }
     }
+
+    /* Better select field for multiple employees */
+    #id_employees_assigned {
+        height: 150px;
+        border-radius: 10px;
+        background-color: #fff;
+    }
 </style>
+
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-
 <script>
     const freelancerCheckbox = document.getElementById('id_assigned_to_freelancers');
     const employeesGroup = document.getElementById('employees-assigned-group');
@@ -272,7 +214,7 @@
         employeesGroup.style.display = freelancerCheckbox.checked ? 'none' : 'flex';
     }
 
-    freelancerCheckbox.addEventListener('change', toggleEmployeesField);
+    freelancerCheckbox?.addEventListener('change', toggleEmployeesField);
     window.addEventListener('load', toggleEmployeesField);
 </script>
 {% endblock %}

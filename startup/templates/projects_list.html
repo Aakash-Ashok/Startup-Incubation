@@ -15,10 +15,9 @@
 <!-- Filter Bar -->
 <div class="filter-bar">
     <button class="filter-btn active" data-status="all">All</button>
-    <button class="filter-btn" data-status="open">Open</button>
-    <button class="filter-btn" data-status="in-progress">In Progress</button>
+    <button class="filter-btn" data-status="planned">Planned</button>
+    <button class="filter-btn" data-status="ongoing">Ongoing</button>
     <button class="filter-btn" data-status="completed">Completed</button>
-    
 </div>
 
 <!-- Projects Cards -->
@@ -29,30 +28,45 @@
             <h3>{{ project.name }}</h3>
             <span class="status {{ project.status|lower|slugify }}">{{ project.status }}</span>
         </div>
+
         <div class="card-body">
             <p><strong>Start Date:</strong> {{ project.start_date|date:"d M Y" }}</p>
             <p><strong>End Date:</strong> {{ project.end_date|date:"d M Y" }}</p>
-            <p><strong>Team Members:</strong> {{ project.team.count }}</p>
+
+            <p><strong>Team Members:</strong></p>
+            <ul class="team-list">
+                {% if project.employees_assigned.exists %}
+                {% for emp in project.employees_assigned.all %}
+                <li>👔 {{ emp.name }}</li>
+                {% endfor %}
+                {% endif %}
+                {% if project.assignment and project.assignment.freelancer %}
+                <li>💼 {{ project.assignment.freelancer.user.username }}</li>
+                {% endif %}
+                {% if not project.employees_assigned.exists and not project.assignment.freelancer %}
+                <li>No members assigned yet.</li>
+                {% endif %}
+            </ul>
         </div>
+
         <div class="card-actions">
             <a href="{% url 'project_detail' project.id %}" class="btn view">View</a>
-            <a href="{% url 'project_edit' project.id %}" class="btn edit">Edit</a>
+            <a href="{% url 'update_project' project.id %}" class="btn edit">Edit</a>
         </div>
     </div>
-    {% empty %}
-    <p>No projects found.</p>
     {% endfor %}
 </div>
 
+<div class="no-projects-message">No projects found for this filter.</div>
+
 <!-- Styles -->
 <style>
-    /* Move content away from sidebar like dashboard */
     .main-content {
         margin-left: 270px;
-        /* extra 20px from sidebar */
-        padding: 20px 30px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
     }
-
     /* Page Header */
     .page-header {
         margin-bottom: 20px;
@@ -73,23 +87,22 @@
         color: #555;
     }
 
-    /* Create Project Button */
-    .create-project {
+    .btn.create-project {
         background: #c62828;
         color: #fff;
         padding: 8px 16px;
         border-radius: 8px;
         font-weight: 500;
         text-decoration: none;
-        transition: background 0.2s;
         font-size: 0.9rem;
+        transition: background 0.2s;
     }
 
-    .create-project:hover {
+    .btn.create-project:hover {
         background: #e53935;
     }
 
-    /* Filter Bar */
+    /* Filter Buttons */
     .filter-bar {
         margin-bottom: 20px;
     }
@@ -113,14 +126,15 @@
         color: #fff;
     }
 
-    /* Projects Grid */
+    /* Project Cards Grid */
     .projects-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 20px;
+        position: relative;
     }
 
-    /* Individual Project Card */
+    /* Individual Card */
     .project-card {
         background: #fff;
         border-radius: 12px;
@@ -129,7 +143,17 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+        opacity: 1;
+    }
+
+    .project-card.hidden {
+        opacity: 0;
+        transform: scale(0.98);
+        pointer-events: none;
+        height: 0;
+        margin: 0;
+        padding: 0;
     }
 
     .project-card:hover {
@@ -137,6 +161,7 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
     }
 
+    /* Card Header & Status */
     .card-header {
         display: flex;
         justify-content: space-between;
@@ -157,11 +182,11 @@
         font-size: 0.8rem;
     }
 
-    .status.open {
-        background: #e53935;
+    .status.planned {
+        background: #1565c0;
     }
 
-    .status.in-progress {
+    .status.ongoing {
         background: #fb8c00;
     }
 
@@ -169,12 +194,31 @@
         background: #43a047;
     }
 
+    /* Card Body */
     .card-body p {
         margin: 5px 0;
         font-size: 0.9rem;
         color: #555;
     }
 
+    .team-list {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 0;
+    }
+
+    .team-list li {
+        background: #f8f8f8;
+        padding: 6px 10px;
+        border-radius: 8px;
+        display: inline-block;
+        margin-right: 6px;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    /* Card Actions Buttons */
     .card-actions {
         margin-top: 10px;
     }
@@ -207,6 +251,16 @@
         background: #f57c00;
     }
 
+    /* No Projects Message */
+    .no-projects-message {
+        grid-column: 1/-1;
+        text-align: center;
+        font-size: 1rem;
+        color: #555;
+        padding: 20px 0;
+        display: none;
+    }
+
     /* Responsive */
     @media(max-width: 850px) {
         .main-content {
@@ -225,7 +279,7 @@
             align-items: flex-start;
         }
 
-        .create-project {
+        .btn.create-project {
             margin-top: 10px;
         }
     }
@@ -235,35 +289,36 @@
 
 {% block scripts %}
 <script>
-    // Notification toggle from base
-    const notif = document.querySelector('.header-right.notification');
-    const dropdown = notif.querySelector('.notification-dropdown');
-    notif.addEventListener('click', () => {
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    });
-    document.addEventListener('click', function (e) {
-        if (!notif.contains(e.target)) { dropdown.style.display = 'none'; }
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+        // Filter Projects with animation
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+        const noProjectsMessage = document.querySelector('.no-projects-message');
 
-    // Filter Projects
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const projectCards = document.querySelectorAll('.project-card');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Toggle active class
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
 
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+                const status = btn.dataset.status.toLowerCase();
+                let anyVisible = false;
 
-            const status = btn.dataset.status;
+                projectCards.forEach(card => {
+                    if (status === 'all' || card.dataset.status === status) {
+                        card.classList.remove('hidden');
+                        anyVisible = true;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
 
-            projectCards.forEach(card => {
-                if (status === 'all' || card.dataset.status === status) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+                noProjectsMessage.style.display = anyVisible ? 'none' : 'block';
             });
         });
+
+        // Trigger initial filter
+        document.querySelector('.filter-btn.active').click();
     });
 </script>
 {% endblock %}

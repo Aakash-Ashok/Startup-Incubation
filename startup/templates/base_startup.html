@@ -11,10 +11,10 @@
 
     <style>
         :root {
-            --red: #c62828;
+            --red: #ff0000;
             --light-red: #e53935;
             --white: #fff;
-            --light-gray: #f7f7f7;
+            --light-gray: #ffffff;
             --dark-gray: #444;
         }
 
@@ -197,22 +197,36 @@
 
 <body>
     <!-- Sidebar -->
+    <!-- Sidebar -->
+    <!-- Sidebar -->
     <nav class="sidebar">
         <div>
             <h2>Startup Panel</h2>
             <ul>
-                <li><a href="{% url 'startup_dashboard' %}" class="{% block active_dashboard %}{% endblock %}">🏠
-                        Dashboard</a></li>
-                <li><a href="{% url 'startup_projects' %}" class="{% block active_projects %}{% endblock %}">📂
-                        Projects</a></li>
-                <li><a href="{% url 'startup_employees' %}" class="{% block active_employees %}{% endblock %}">👥
-                        Employees</a></li>
-                <li><a href="#" class="{% block active_proposals %}{% endblock %}">📝
-                        Proposals</a></li>
-                <li><a href="#" class="{% block active_funding %}{% endblock %}">💰
-                        Funding</a></li>
-                <li><a href="#" class="{% block active_mentorship %}{% endblock %}">🎓
-                        Mentorship</a></li>
+                <li>
+                    <a href="{% url 'startup_dashboard' %}"
+                    class="{% if request.path == '/startup/dashboard/' or request.path == '/startup/dashboard/' %}active{% endif %}">🏠 Dashboard</a>
+                </li>
+                <li>
+                    <a href="{% url 'startup_projects' %}"
+                        class="{% if '/startup/projects/' in request.path %}active{% endif %}">📂 Projects</a>
+                </li>
+                <li>
+                    <a href="{% url 'startup_employees' %}"
+                        class="{% if '/startup/employees/' in request.path %}active{% endif %}">👥 Employees</a>
+                </li>
+                <li>
+                    <a href="{% url 'project_proposals' %}"
+                        class="{% if '/startup/proposals/' in request.path %}active{% endif %}">📝 Proposals</a>
+                </li>
+                <li>
+                    <a href="{% url 'funding_list' %}"
+                        class="{% if '/startup/funding/' in request.path %}active{% endif %}">💰 Funding</a>
+                </li>
+                <li>
+                    <a href="{% url 'startup_sessions' %}"
+                        class="{% if '/startup/sessions/' in request.path %}active{% endif %}">🎓 Mentorship</a>
+                </li>
             </ul>
         </div>
         <div class="logout">
@@ -220,12 +234,14 @@
         </div>
     </nav>
 
+
+
     <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
         <header>
             <div class="header-left">
-                <img src="{{ profile.logo|default:'/static/accounts/images/default_logo.png' }}" alt="Logo">
+                <img src="{{ profile.logo.url|default:'/accounts/static/images/logo.png' }}" alt="Logo">
                 <h1>Welcome, {{ profile.startup_name }}</h1>
             </div>
             <div class="header-right notification">

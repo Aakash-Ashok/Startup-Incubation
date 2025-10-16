@@ -14,14 +14,32 @@ class MentorProfile(models.Model):
 class MentorshipSession(models.Model):
     mentor = models.ForeignKey(MentorProfile, on_delete=models.CASCADE, related_name="sessions")
     startup = models.ForeignKey(StartupProfile, on_delete=models.CASCADE, related_name="sessions")
-    topic=models.CharField(max_length=20)
+
+    topic = models.CharField(max_length=100)
     session_date = models.DateTimeField()
     notes = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=[
+
+    approval_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('PENDING', 'Pending Approval'),
+            ('APPROVED', 'Approved'),
+            ('REJECTED', 'Rejected'),
+        ],
+        default='PENDING'
+    )
+
+    status = models.CharField(
+    max_length=20,
+    choices=[
+        ('REQUESTED', 'Requested'),   # <-- new option
         ('SCHEDULED', 'Scheduled'),
         ('COMPLETED', 'Completed'),
-        ('CANCELLED', 'Cancelled')
-    ], default='SCHEDULED')
+        ('CANCELLED', 'Cancelled'),
+    ],
+    default='REQUESTED'
+)
 
     def __str__(self):
-        return f"{self.mentor.user.username} -> {self.startup.startup_name}"
+        return f"{self.startup.startup_name} → {self.mentor.user.username} ({self.topic})"
+

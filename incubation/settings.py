@@ -46,12 +46,14 @@ INSTALLED_APPS = [
     
     
     'accounts',
-    'startup',
     'freelancer',
+    'startup',
     'projects',
     'mentors',
     'funding',
     'dashboard',
+    
+    
 ]
 
 MIDDLEWARE = [
@@ -92,14 +94,11 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ["DB_NAME"],
-        'USER': os.environ["DB_USER"],
-        'PASSWORD': os.environ["DB_PASSWORD"],
-        'HOST': os.environ["DB_HOST"],
-        'PORT': os.environ.get("DB_PORT", "5432"),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 
 # Password validation
@@ -147,9 +146,11 @@ SUPABASE_URL = "https://fbtjimgaqmhblaorilrf.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZidGppbWdhcW1oYmxhb3JpbHJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTA1NTA0OSwiZXhwIjoyMDc0NjMxMDQ5fQ.P96PM_k8CPNic1zVOmKp4cli1MU7DMO_gPwO1IXGNB8"
 SUPABASE_BUCKET = "Startup"
 
-if not DEBUG:
-    DEFAULT_FILE_STORAGE = "supabase_storage.storage_backends.SupabaseStorage"
-else:
-    # Use local during development
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+AUTH_USER_MODEL="accounts.Customuser"

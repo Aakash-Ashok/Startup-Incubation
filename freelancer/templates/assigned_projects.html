@@ -1,0 +1,20 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Assigned Projects{% endblock %}
+
+{% block content %}
+<h2>🧩 Assigned Projects</h2>
+
+{% if projects %}
+<div style="display:flex;flex-direction:column;gap:20px;margin-top:25px;">
+    {% for project in projects %}
+    <div style="background:#fff;padding:20px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.08);">
+        <h3 style="margin:0;color:#1976d2;">{{ project.name }}</h3>
+        <p>{{ project.description|truncatechars:150 }}</p>
+        <p><strong>Status:</strong> {{ project.status }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p style="color:#777;">No projects assigned yet.</p>
+{% endif %}
+{% endblock %}

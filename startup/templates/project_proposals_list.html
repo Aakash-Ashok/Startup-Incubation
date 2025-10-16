@@ -1,0 +1,104 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Project Proposals - Startup{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="projects-wrapper">
+        <h2>Project Proposals</h2>
+
+        {% if projects %}
+        <table class="projects-table">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Status</th>
+                    <th>Proposals Count</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>{{ project.name }}</td>
+                    <td>{{ project.get_status_display }}</td>
+                    <td>{{ project.proposals.count }}</td>
+                    <td>
+                        <a href="{% url 'project_proposals' project.id %}" class="btn">View Proposals</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No projects have received proposals yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    .page-container {
+        padding: 40px;
+        background-color: #f9f9f9;
+        min-height: 100vh;
+    }
+
+    .projects-wrapper {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    h2{
+        color: #000000;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        color: #ffffff;
+    }
+
+    .projects-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .projects-table th,
+    .projects-table td {
+        text-align: left;
+        padding: 12px 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .projects-table th {
+        background-color: #f1f1f1;
+        font-weight: 600;
+    }
+
+    .projects-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .btn {
+        background-color: #c62828;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn:hover {
+        background-color: #a11e1e;
+    }
+</style>
+{% endblock %}
