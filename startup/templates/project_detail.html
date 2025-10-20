@@ -10,15 +10,15 @@
     <div class="project-card">
         <!-- Breadcrumb / Back Link -->
         <div class="breadcrumb">
-            <a href="{% url 'startup_projects' %}">← Back to Projects</a>
+            <a href="{% url 'startup:startup_projects' %}">← Back to Projects</a>
         </div>
 
         <!-- Header -->
         <div class="card-header">
             <h1>{{ project.name }}</h1>
             <div class="card-actions">
-                <a href="{% url 'update_project' project.id %}" class="btn edit-btn">Edit</a>
-                <a href="{% url 'delete_project' project.id %}" class="btn delete-btn">Delete</a>
+                <a href="{% url 'startup:update_project' project.id %}" class="btn edit-btn">Edit</a>
+                <a href="{% url 'startup:delete_project' project.id %}" class="btn delete-btn">Delete</a>
             </div>
         </div>
 

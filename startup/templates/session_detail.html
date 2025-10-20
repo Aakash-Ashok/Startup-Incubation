@@ -17,10 +17,10 @@
 
     <div class="actions">
         {% if session.approval_status == 'APPROVED' and session.status != 'CANCELLED' %}
-        <a href="{% url 'update_session' session.id %}" class="btn btn-success">Edit</a>
+        <a href="{% url 'startup:update_session' session.id %}" class="btn btn-success">Edit</a>
         {% endif %}
         {% if session.status == 'SCHEDULED' %}
-        <a href="{% url 'cancel_session' session.id %}" class="btn btn-danger">Cancel</a>
+        <a href="{% url 'startup:cancel_session' session.id %}" class="btn btn-danger">Cancel</a>
         {% endif %}
     </div>
 </div>

@@ -12,7 +12,7 @@
     <div class="page-header">
         <h2>👥 Employees of {{ profile.startup_name }}</h2>
         <p>List of all employees in your startup.</p>
-        <a href="{% url 'add_employee' %}" class="btn add-btn">+ Add New Employee</a>
+        <a href="{% url 'startup:add_employee' %}" class="btn add-btn">+ Add New Employee</a>
     </div>
 </div>
 
@@ -30,7 +30,7 @@
         <div class="employee-info">
             <h3>{{ employee.name }}</h3>
             <p class="role">{{ employee.role|default:"No role" }}</p>
-            <a href="{% url 'employee_detail' employee.id %}" class="btn view-btn">View Details</a>
+            <a href="{% url 'startup:employee_detail' employee.id %}" class="btn view-btn">View Details</a>
         </div>
     </div>
     {% empty %}

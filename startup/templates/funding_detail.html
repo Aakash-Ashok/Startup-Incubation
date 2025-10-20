@@ -2,7 +2,7 @@
 {% block content %}
 
 <!-- Back button -->
-<a href="{% url 'funding_list' %}" class="btn btn-secondary back-btn">&larr; Back to Funding Rounds</a>
+<a href="{% url 'startup:funding_list' %}" class="btn btn-secondary back-btn">&larr; Back to Funding Rounds</a>
 
 <div class="panel">
     <h2>{{ funding.round_name }}</h2>
@@ -49,8 +49,8 @@
     </div>
 
     <div class="actions">
-        <a href="{% url 'update_funding' funding.id %}" class="btn btn-primary">Edit</a>
-        <a href="{% url 'delete_funding' funding.id %}" class="btn btn-danger">Delete</a>
+        <a href="{% url 'startup:update_funding' funding.id %}" class="btn btn-primary">Edit</a>
+        <a href="{% url 'startup:delete_funding' funding.id %}" class="btn btn-danger">Delete</a>
     </div>
 </div>
 

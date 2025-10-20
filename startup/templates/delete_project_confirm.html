@@ -21,7 +21,7 @@
 
         <!-- Actions -->
         <div class="section flex-row">
-            <a href="{% url 'project_detail' project.id %}" class="btn cancel-btn">Cancel</a>
+            <a href="{% url 'startup:project_detail' project.id %}" class="btn cancel-btn">Cancel</a>
             <form method="POST" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn delete-btn">Confirm Delete</button>

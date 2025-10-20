@@ -2,7 +2,7 @@
 {% block content %}
 <div class="panel">
     <h2>Funding Rounds</h2>
-    <a href="{% url 'create_funding' %}" class="btn btn-success">Create New Funding Round</a>
+    <a href="{% url 'startup:create_funding' %}" class="btn btn-success">Create New Funding Round</a>
 
     {% if funding_rounds %}
     <table class="funding-table">
@@ -41,16 +41,16 @@
                 </td>
                 <td>{{ f.date }}</td>
                 <td>
-                    <a href="{% url 'funding_detail' f.id %}">View</a> |
-                    <a href="{% url 'update_funding' f.id %}">Edit</a> |
-                    <a href="{% url 'delete_funding' f.id %}">Delete</a>
+                    <a href="{% url 'startup:funding_detail' f.id %}">View</a> |
+                    <a href="{% url 'startup:update_funding' f.id %}">Edit</a> |
+                    <a href="{% url 'startup:delete_funding' f.id %}">Delete</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p>No funding rounds found. <a href="{% url 'create_funding' %}">Create one</a></p>
+    <p>No funding rounds found. <a href="{% url 'startup:create_funding' %}">Create one</a></p>
     {% endif %}
 </div>
 

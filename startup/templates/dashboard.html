@@ -15,7 +15,7 @@
             <span>In Progress: <span class="badge orange">{{ projects_in_progress }}</span></span>
             <span>Completed: <span class="badge green">{{ projects_completed }}</span></span>
         </div>
-        <a href="{% url 'startup_projects' %}">View Projects →</a>
+        <a href="{% url 'startup:startup_projects' %}">View Projects →</a>
     </div>
 
     <!-- Proposals Card -->
@@ -290,7 +290,7 @@
     // Function to fetch live data
     async function updateDashboard() {
         try {
-            const response = await fetch("{% url 'dashboard_data' %}");
+            const response = await fetch("{% url 'startup:dashboard_data' %}");
             const data = await response.json();
 
             charts.projects.data.datasets[0].data = [

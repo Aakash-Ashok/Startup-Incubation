@@ -2,10 +2,16 @@
 {% block title %}My Proposals{% endblock %}
 
 {% block content %}
-<h2>📑 My Proposals</h2>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2>📑 My Proposals</h2>
+    <a href="{% url 'freelancer:freelancer_available_projects' %}" style="background:#1976d2;color:#fff;padding:10px 16px;border-radius:6px;
+              text-decoration:none;font-weight:500;transition:0.3s;">
+        🔍 View Available Projects
+    </a>
+</div>
 
 {% if proposals %}
-<table style="width:100%;border-collapse:collapse;background:#fff;margin-top:25px;border-radius:8px;overflow:hidden;">
+<table style="width:100%;border-collapse:collapse;background:#fff;margin-top:10px;border-radius:8px;overflow:hidden;">
     <tr style="background:#1976d2;color:#fff;">
         <th style="padding:12px;text-align:left;">Project</th>
         <th style="padding:12px;text-align:left;">Submitted On</th>
@@ -16,9 +22,9 @@
         <td style="padding:12px;">{{ p.project.name }}</td>
         <td style="padding:12px;">{{ p.submitted_at|date:"M d, Y" }}</td>
         <td style="padding:12px;">
-            {% if p.status == 'Pending' %}
+            {% if p.status == 'PENDING' %}
             <span style="color:#856404;background:#fff3cd;padding:4px 8px;border-radius:6px;">Pending</span>
-            {% elif p.status == 'Accepted' %}
+            {% elif p.status == 'APPROVED' %}
             <span style="color:#155724;background:#d4edda;padding:4px 8px;border-radius:6px;">Accepted</span>
             {% else %}
             <span style="color:#721c24;background:#f8d7da;padding:4px 8px;border-radius:6px;">Rejected</span>

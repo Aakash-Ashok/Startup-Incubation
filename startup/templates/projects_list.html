@@ -9,7 +9,7 @@
 <div class="page-header">
     <h2>📂 Projects</h2>
     <p>Manage and view all your startup projects.</p>
-    <a href="{% url 'create_project' %}" class="btn create-project">➕ Create Project</a>
+    <a href="{% url 'startup:create_project' %}" class="btn create-project">➕ Create Project</a>
 </div>
 
 <!-- Filter Bar -->
@@ -50,8 +50,8 @@
         </div>
 
         <div class="card-actions">
-            <a href="{% url 'project_detail' project.id %}" class="btn view">View</a>
-            <a href="{% url 'update_project' project.id %}" class="btn edit">Edit</a>
+            <a href="{% url 'startup:project_detail' project.id %}" class="btn view">View</a>
+            <a href="{% url 'startup:update_project' project.id %}" class="btn edit">Edit</a>
         </div>
     </div>
     {% endfor %}

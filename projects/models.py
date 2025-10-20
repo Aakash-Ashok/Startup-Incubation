@@ -34,6 +34,7 @@ class ProjectProposal(models.Model):
         ('APPROVED', 'Approved'),
         ('REJECTED', 'Rejected')
     ], default='PENDING')
+    rejection_note = models.TextField(blank=True, null=True)  # NEW: store rejection reason
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

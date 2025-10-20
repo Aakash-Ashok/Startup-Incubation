@@ -15,7 +15,7 @@
     {% if proposal %}
     <p style="color:green;margin-top:10px;">✅ You already submitted a proposal for this project.</p>
     {% else %}
-    <a href="{% url 'freelancer_submit_proposal' project.id %}"
+    <a href="{% url 'freelancer:freelancer_submit_proposal' project.id %}"
         style="display:inline-block;background:#1976d2;color:white;padding:10px 15px;border-radius:8px;text-decoration:none;margin-top:15px;">
         Submit Proposal
     </a>

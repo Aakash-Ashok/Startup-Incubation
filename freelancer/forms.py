@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from accounts.models import CustomUser
+from .models import FreelancerProfile , Skill , Certification , PortfolioItem , Milestone
+from projects.models import Project , ProjectProposal
 
 class FreelancerSignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -23,8 +25,7 @@ class FreelancerSignupForm(UserCreationForm):
         return user
 
 
-from django import forms
-from .models import FreelancerProfile
+
 
 class FreelancerProfileForm(forms.ModelForm):
     class Meta:
@@ -44,7 +45,7 @@ class FreelancerProfileForm(forms.ModelForm):
 
 
 
-from .models import Skill
+
 
 class SkillForm(forms.ModelForm):
     class Meta:
@@ -59,7 +60,7 @@ class SkillForm(forms.ModelForm):
         }
 
 
-from .models import Certification
+
 
 class CertificationForm(forms.ModelForm):
     class Meta:
@@ -70,7 +71,7 @@ class CertificationForm(forms.ModelForm):
         }
 
 
-from .models import PortfolioItem
+
 
 class PortfolioForm(forms.ModelForm):
     class Meta:
@@ -82,7 +83,7 @@ class PortfolioForm(forms.ModelForm):
 
 
 
-from projects.models import Project , ProjectProposal
+
 
 class ProposalForm(forms.ModelForm):
     attachments = forms.FileField(
@@ -93,7 +94,7 @@ class ProposalForm(forms.ModelForm):
 
     class Meta:
         model = ProjectProposal
-        fields = ['project', 'proposal_text', 'expected_payment', 'expected_timeline', 'attachments']
+        fields = [ 'proposal_text', 'expected_payment', 'expected_timeline', 'attachments']
         widgets = {
             'proposal_text': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Write your proposal...'}),
             'expected_timeline': forms.NumberInput(attrs={'min': 1, 'placeholder': 'Estimated days to complete'}),
@@ -108,7 +109,6 @@ class ProposalForm(forms.ModelForm):
             )
 
 
-from .models import Milestone
 
 class MilestoneForm(forms.ModelForm):
     class Meta:

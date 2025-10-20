@@ -7,7 +7,7 @@
     <title>{% block title %}Freelancer Panel{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* Base layout */
+        /* ===== BASE LAYOUT ===== */
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -17,42 +17,92 @@
             min-height: 100vh;
         }
 
-        /* Sidebar */
+        /* ===== SIDEBAR ===== */
         .sidebar {
-            width: 240px;
+            width: 250px;
             background: #1e293b;
             color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px 0;
             transition: all 0.3s ease;
         }
 
-        .sidebar h2 {
+        .sidebar-header {
             text-align: center;
-            margin-bottom: 20px;
+            padding: 20px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
             font-size: 1.3rem;
+            margin: 0;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar nav {
+            flex-grow: 1;
+            padding: 15px 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 15px;
+        }
+
+        .sidebar-section h4 {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
             letter-spacing: 1px;
+            padding: 8px 20px;
+            margin: 0 0 5px;
         }
 
         .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: #cbd5e1;
             text-decoration: none;
             padding: 12px 20px;
-            display: block;
             font-size: 0.95rem;
+            transition: all 0.25s ease;
             border-left: 3px solid transparent;
         }
 
-        .sidebar a:hover,
+        .sidebar a:hover {
+            background: #334155;
+            color: #fff;
+        }
+
         .sidebar a.active {
             background: #334155;
             color: #fff;
-            border-left: 3px solid #3b82f6;
+            border-left-color: #3b82f6;
         }
 
-        /* Main content area */
+        .sidebar a i {
+            width: 20px;
+            text-align: center;
+            color: #60a5fa;
+            font-size: 1.05rem;
+        }
+
+        /* ===== SIDEBAR FOOTER ===== */
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .sidebar-footer i {
+            color: #60a5fa;
+        }
+
+        /* ===== MAIN AREA ===== */
         .main {
             flex: 1;
             display: flex;
@@ -60,7 +110,7 @@
             background: #f9fafb;
         }
 
-        /* Navbar */
+        /* ===== NAVBAR ===== */
         .navbar {
             background: #fff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -75,16 +125,18 @@
             color: #1976d2;
         }
 
+        .menu-toggle {
+            display: none;
+            font-size: 1.6rem;
+            color: #1976d2;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
         .navbar .right {
             display: flex;
             align-items: center;
             gap: 20px;
-        }
-
-        .navbar .right .user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .navbar .right img {
@@ -96,31 +148,31 @@
         }
 
         .navbar .right a {
-            text-decoration: none;
             color: #1976d2;
+            text-decoration: none;
             font-weight: 500;
         }
 
-        /* Content area */
+        /* ===== CONTENT ===== */
         .content {
             padding: 30px;
             flex: 1;
         }
 
-        /* Footer */
+        /* ===== FOOTER ===== */
         footer {
             background: #1e293b;
             color: #cbd5e1;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             font-size: 0.9rem;
         }
 
-        /* Responsive */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
-                left: -240px;
+                left: -250px;
                 top: 0;
                 height: 100%;
                 z-index: 100;
@@ -130,59 +182,70 @@
                 left: 0;
             }
 
-            .navbar {
-                justify-content: space-between;
-            }
-
             .menu-toggle {
                 display: inline-block;
-                cursor: pointer;
-                font-size: 1.5rem;
-                color: #1976d2;
+            }
+
+            .navbar h1 {
+                font-size: 1.1rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
-        <h2>Freelancer Panel</h2>
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-user-tie"></i> Freelancer</h2>
+        </div>
+
         <nav>
-            <a href="{% url 'freelancer_dashboard' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_dashboard' %}active{% endif %}">
-                <i class="fa-solid fa-chart-line"></i> Dashboard
-            </a>
-            <a href="{% url 'assigned_projects' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_projects' %}active{% endif %}">
-                <i class="fa-solid fa-briefcase"></i> My Projects
-            </a>
-            <a href="{% url 'freelancer_proposals' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_proposals' %}active{% endif %}">
-                <i class="fa-solid fa-file-signature"></i> Proposals
-            </a>
-            <a href="{% url 'portfolio_list' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_portfolio' %}active{% endif %}">
-                <i class="fa-solid fa-folder-open"></i> Portfolio
-            </a>
-            <a href="{% url 'manage_skills' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_skills' %}active{% endif %}">
-                <i class="fa-solid fa-code"></i> Skills
-            </a>
-            <a href="{% url 'manage_certifications' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_certifications' %}active{% endif %}">
-                <i class="fa-solid fa-certificate"></i> Certifications
-            </a>
-            <a href="{% url 'freelancer_profile_detail' %}"
-                class="{% if request.resolver_match.url_name == 'freelancer_profile' %}active{% endif %}">
-                <i class="fa-solid fa-user"></i> My Profile
-            </a>
+            <div class="sidebar-section">
+                <h4>Main</h4>
+                <a href="{% url 'freelancer_dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="{% url 'freelancer:freelancer_assigned_projects' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_projects' %}active{% endif %}">
+                    <i class="fa-solid fa-briefcase"></i> My Projects
+                </a>
+                <a href="{% url 'freelancer:freelancer_proposals' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_proposals' %}active{% endif %}">
+                    <i class="fa-solid fa-file-signature"></i> Proposals
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <h4>Profile</h4>
+                <a href="{% url 'freelancer:freelancer_portfolio' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_portfolio' %}active{% endif %}">
+                    <i class="fa-solid fa-folder-open"></i> Portfolio
+                </a>
+                <a href="{% url 'freelancer:freelancer_skills' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_skills' %}active{% endif %}">
+                    <i class="fa-solid fa-code"></i> Skills
+                </a>
+                <a href="{% url 'freelancer:freelancer_certifications' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_certifications' %}active{% endif %}">
+                    <i class="fa-solid fa-certificate"></i> Certifications
+                </a>
+                <a href="{% url 'freelancer:freelancer_profile_detail' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_profile' %}active{% endif %}">
+                    <i class="fa-solid fa-user"></i> My Profile
+                </a>
+            </div>
         </nav>
+
+        <div class="sidebar-footer">
+            <p><i class="fa-solid fa-circle-info"></i> Need Help?<br><small>support@startupincubation.com</small></p>
+        </div>
     </div>
 
-    <!-- Main -->
+    <!-- MAIN CONTENT -->
     <div class="main">
-        <!-- Navbar -->
+        <!-- NAVBAR -->
         <div class="navbar">
             <div class="left">
                 <span class="menu-toggle" onclick="toggleSidebar()">
@@ -192,21 +255,26 @@
             </div>
             <div class="right">
                 <div class="user">
-                    <img src="{{ request.user.freelancer_profile.profile_picture|default:'/static/images/default_user.png' }}"
-                        alt="Profile">
+                    {% if request.user.freelancer_profile.profile_picture %}
+                    <img src="{{ request.user.freelancer_profile.profile_picture.url }}" alt="Profile"
+                        style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    {% else %}
+                    <img src="/media/freelancers/ic_launcher.png" alt="Profile"
+                        style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    {% endif %}
                     <span>{{ request.user.freelancer_profile.full_name|default:request.user.username }}</span>
                 </div>
                 <a href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </div>
         </div>
 
-        <!-- Page Content -->
+        <!-- PAGE CONTENT -->
         <div class="content">
             {% block content %}
             {% endblock %}
         </div>
 
-        <!-- Footer -->
+        <!-- FOOTER -->
         <footer>
             &copy; {{ now|date:"Y" }} Freelancer Module | Startup & Freelancer Incubation System
         </footer>

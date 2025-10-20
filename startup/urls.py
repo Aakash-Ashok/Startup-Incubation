@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+app_name = 'startup'
 
 urlpatterns = [
     # -----------------------------
@@ -23,6 +24,7 @@ urlpatterns = [
     # Project Proposals
     # -----------------------------
     path('proposals/', views.project_proposals, name='project_proposals'),
+    path('proposals/<int:project_id>/', views.project_proposals_detail, name='project_proposals_detail'),
     path('proposals/<int:proposal_id>/approve/', views.approve_proposal, name='approve_proposal'),
     path('proposals/<int:proposal_id>/reject/', views.reject_proposal, name='reject_proposal'),
 

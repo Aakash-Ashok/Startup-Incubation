@@ -204,27 +204,27 @@
             <h2>Startup Panel</h2>
             <ul>
                 <li>
-                    <a href="{% url 'startup_dashboard' %}"
+                    <a href="{% url 'startup:startup_dashboard' %}"
                     class="{% if request.path == '/startup/dashboard/' or request.path == '/startup/dashboard/' %}active{% endif %}">🏠 Dashboard</a>
                 </li>
                 <li>
-                    <a href="{% url 'startup_projects' %}"
+                    <a href="{% url 'startup:startup_projects' %}"
                         class="{% if '/startup/projects/' in request.path %}active{% endif %}">📂 Projects</a>
                 </li>
                 <li>
-                    <a href="{% url 'startup_employees' %}"
+                    <a href="{% url 'startup:startup_employees' %}"
                         class="{% if '/startup/employees/' in request.path %}active{% endif %}">👥 Employees</a>
                 </li>
                 <li>
-                    <a href="{% url 'project_proposals' %}"
+                    <a href="{% url 'startup:project_proposals' %}"
                         class="{% if '/startup/proposals/' in request.path %}active{% endif %}">📝 Proposals</a>
                 </li>
                 <li>
-                    <a href="{% url 'funding_list' %}"
+                    <a href="{% url 'startup:funding_list' %}"
                         class="{% if '/startup/funding/' in request.path %}active{% endif %}">💰 Funding</a>
                 </li>
                 <li>
-                    <a href="{% url 'startup_sessions' %}"
+                    <a href="{% url 'startup:startup_sessions' %}"
                         class="{% if '/startup/sessions/' in request.path %}active{% endif %}">🎓 Mentorship</a>
                 </li>
             </ul>

@@ -3,11 +3,10 @@ from .forms import FreelancerProfileForm , FreelancerSignupForm
 from django.contrib.auth import login
 # Create your views here.
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.conf import settings
+
 
 from .forms import (
     FreelancerProfileForm,
@@ -67,6 +66,7 @@ def freelancer_signup(request):
 @role_required('FREELANCER')
 def freelancer_dashboard(request):
     profile = request.user.freelancer_profile
+    user=request.user
     proposals = ProjectProposal.objects.filter(freelancer=profile)
     
     # Get assigned projects through ProjectAssignment
@@ -77,6 +77,7 @@ def freelancer_dashboard(request):
     earnings = sum(profile.earnings.values_list('amount', flat=True))
 
     context = {
+        'user':user,
         'profile': profile,
         'proposals_count': proposals.count(),
         'pending_proposals': proposals.filter(status='PENDING').count(),
@@ -163,9 +164,9 @@ def available_projects(request):
 
     # ✅ Projects that are not assigned and still in PLANNED status
     projects = Project.objects.filter(
-        assigned_to_freelancers=False,
-        status='PLANNED'
-    )
+    assigned_to_freelancers=True,
+    status='PLANNED').exclude(proposals__freelancer=profile)
+
 
     return render(request, 'available_projects.html', {
         'projects': projects,
@@ -189,7 +190,7 @@ def project_detail(request, project_id):
         freelancer=freelancer
     ).first()
 
-    return render(request, 'project_detail.html', {
+    return render(request, 'freelancerproject_detail.html', {
         'project': project,
         'proposal': existing_proposal
     })
@@ -208,7 +209,7 @@ def submit_proposal(request, project_id):
     # Prevent duplicate proposals
     if ProjectProposal.objects.filter(project=project, freelancer=freelancer).exists():
         messages.info(request, "You already submitted a proposal for this project.")
-        return redirect('freelancer_proposals')
+        return redirect('freelancer:freelancer_proposals')
 
     if request.method == 'POST':
         form = ProposalForm(request.POST)
@@ -220,7 +221,7 @@ def submit_proposal(request, project_id):
             proposal.save()
 
             messages.success(request, "Proposal submitted successfully.")
-            return redirect('freelancer_proposals')
+            return redirect('freelancer:freelancer_proposals')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -258,10 +259,10 @@ def assigned_projects(request):
     freelancer = request.user.freelancer_profile
 
     projects = Project.objects.filter(
-        assigned_to_freelancers=True,
-        proposals__freelancer=freelancer,
-        proposals__status='ACCEPTED'
-    ).distinct()
+    assignment__freelancer=freelancer,
+    assignment__is_active=True
+)
+
 
     return render(request, 'assigned_projects.html', {
         'projects': projects

@@ -12,7 +12,7 @@
         <h3 style="margin-top:0;color:#1976d2;">{{ project.name }}</h3>
         <p>{{ project.description|truncatechars:120 }}</p>
         <p><strong>Status:</strong> {{ project.status }}</p>
-        <a href="{% url 'freelancer_project_detail' project.id %}"
+        <a href="{% url 'freelancer:freelancer_project_detail' project.id %}"
             style="display:inline-block;background:#1976d2;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;">
             View Details
         </a>

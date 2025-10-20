@@ -5,100 +5,150 @@
 
 {% block content %}
 <div class="page-container">
-    <div class="projects-wrapper">
-        <h2>Project Proposals</h2>
+    <h2 class="page-title">📂 Project Proposals</h2>
 
-        {% if projects %}
-        <table class="projects-table">
-            <thead>
-                <tr>
-                    <th>Project Name</th>
-                    <th>Status</th>
-                    <th>Proposals Count</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for project in projects %}
-                <tr>
-                    <td>{{ project.name }}</td>
-                    <td>{{ project.get_status_display }}</td>
-                    <td>{{ project.proposals.count }}</td>
-                    <td>
-                        <a href="{% url 'project_proposals' project.id %}" class="btn">View Proposals</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No projects have received proposals yet.</p>
-        {% endif %}
+    {% if projects %}
+    <div class="projects-grid">
+        {% for project in projects %}
+        <div class="project-card {% if project.pending_count > 0 %}highlight{% endif %}">
+            <div class="project-header">
+                <h3>{{ project.name }}</h3>
+                <span class="status {{ project.status|lower }}">{{ project.get_status_display }}</span>
+            </div>
+
+            <div class="project-info">
+                <p><strong>Total Proposals:</strong> {{ project.proposals.count }}</p>
+                <p><strong>Pending Proposals:</strong> {{ project.pending_count }}</p>
+                <p><strong>Start Date:</strong> {{ project.start_date|date:"M d, Y" }}</p>
+                <p><strong>End Date:</strong>
+                    {% if project.end_date %}
+                    {{ project.end_date|date:"M d, Y" }}
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="project-actions">
+                <a href="{% url 'startup:project_proposals_detail' project.id %}" class="btn btn-primary">View
+                    Proposals</a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <p class="no-projects">No projects have received proposals yet.</p>
+    {% endif %}
 </div>
 
 <style>
-    .main-content {
-        margin-left: 270px;
-        /* keep spacing for cards/charts from sidebar */
-        padding: 15px 30px 30px 30px;
-        /* less top padding */
-    }
+    /* Page Container */
     .page-container {
         padding: 40px;
-        background-color: #f9f9f9;
+        background-color: #f5f6fa;
         min-height: 100vh;
     }
 
-    .projects-wrapper {
+    /* Title */
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 30px;
+        color: #2c3e50;
+    }
+
+    /* Projects Grid */
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    /* Project Card */
+    .project-card {
         background: #fff;
         border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s, border 0.2s;
     }
 
-    h2{
-        color: #000000;
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     }
 
-    h1 {
-        font-size: 1.8rem;
-        margin-bottom: 25px;
-        color: #ffffff;
+    /* Highlight cards with pending proposals */
+    .project-card.highlight {
+        border: 2px solid #e67e22;
+        /* orange border */
     }
 
-    .projects-table {
-        width: 100%;
-        border-collapse: collapse;
+    /* Project Header */
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
     }
 
-    .projects-table th,
-    .projects-table td {
-        text-align: left;
-        padding: 12px 15px;
-        border-bottom: 1px solid #ddd;
+    .project-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #34495e;
     }
 
-    .projects-table th {
-        background-color: #f1f1f1;
+    .status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
         font-weight: 600;
-    }
-
-    .projects-table tr:hover {
-        background-color: #f9f9f9;
-    }
-
-    .btn {
-        background-color: #c62828;
         color: #fff;
-        text-decoration: none;
+    }
+
+    .status.planned {
+        background: #f39c12;
+    }
+
+    .status.ongoing {
+        background: #3498db;
+    }
+
+    .status.completed {
+        background: #27ae60;
+    }
+
+    /* Project Info */
+    .project-info p {
+        margin: 5px 0;
+        font-size: 0.95rem;
+        color: #555;
+    }
+
+    /* Project Actions */
+    .project-actions {
+        margin-top: 15px;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: #fff;
         padding: 8px 15px;
         border-radius: 8px;
+        text-decoration: none;
         font-weight: 500;
+        transition: background 0.3s;
     }
 
-    .btn:hover {
-        background-color: #a11e1e;
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    /* No Projects */
+    .no-projects {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #888;
+        margin-top: 40px;
     }
 </style>
 {% endblock %}

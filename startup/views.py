@@ -226,12 +226,33 @@ def delete_project(request, project_id):
 # -----------------------------
 # 4️⃣ Project Proposals Workflow
 # -----------------------------
+from django.db.models import Count, Q
 @login_required
 def project_proposals(request):
     startup = request.user.startup_profile
+
     # Filter only projects that have proposals
-    projects_with_proposals = Project.objects.filter(startup=startup, proposals__isnull=False).distinct()
-    return render(request, 'project_proposals_list.html', {'profile':startup, 'projects': projects_with_proposals})
+    projects_with_proposals = Project.objects.filter(
+        startup=startup,
+        proposals__isnull=False
+    ).annotate(
+        pending_count=Count('proposals', filter=Q(proposals__status='PENDING'))
+    ).distinct()
+
+    return render(request, 'project_proposals_list.html', {
+        'profile': startup,
+        'projects': projects_with_proposals
+    })
+
+@login_required
+def project_proposals_detail(request, project_id):
+    project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
+    proposals = project.proposals.all()
+    return render(request, 'project_proposals_detail.html', {
+        'project': project,
+        'proposals': proposals
+    })
+
 
 @login_required
 def startup_employees(request):
@@ -243,16 +264,35 @@ from django.http import JsonResponse
 
 @login_required
 def approve_proposal(request, proposal_id):
-    if request.method == 'POST' and request.is_ajax():
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         proposal = get_object_or_404(ProjectProposal, id=proposal_id)
+        project = proposal.project
+
+        # Prevent multiple approvals
+        if ProjectAssignment.objects.filter(project=project, freelancer__isnull=False).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'A freelancer has already been assigned to this project.'
+            })
+
+        # Approve proposal
         proposal.status = 'APPROVED'
         proposal.save()
 
-        project = proposal.project
-        project.assigned_freelancer = proposal.freelancer
-        project.status = 'ASSIGNED'
+        # Reject other proposals automatically
+        ProjectProposal.objects.filter(project=project).exclude(id=proposal.id).update(status='REJECTED')
+
+        # Create assignment
+        ProjectAssignment.objects.create(
+            project=project,
+            freelancer=proposal.freelancer
+        )
+
+        # Update project status
+        project.status = 'ONGOING'
         project.save()
 
+        # Notify freelancer
         Notification.objects.create(
             user=proposal.freelancer.user,
             title="Project Proposal Approved",
@@ -260,23 +300,34 @@ def approve_proposal(request, proposal_id):
         )
 
         return JsonResponse({'success': True, 'message': 'Proposal approved', 'proposal_id': proposal.id})
+
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
 
 @login_required
 def reject_proposal(request, proposal_id):
-    if request.method == 'POST' and request.is_ajax():
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         proposal = get_object_or_404(ProjectProposal, id=proposal_id)
-        proposal.status = 'REJECTED'
-        proposal.save()
 
-        Notification.objects.create(
-            user=proposal.freelancer.user,
-            title="Project Proposal Rejected",
-            message=f"Your proposal for project '{proposal.project.name}' has been rejected."
-        )
+        # Only reject if not already approved
+        if proposal.status != 'APPROVED':
+            proposal.status = 'REJECTED'
+            proposal.save()
 
-        return JsonResponse({'success': True, 'message': 'Proposal rejected', 'proposal_id': proposal.id})
+            # Notify freelancer
+            Notification.objects.create(
+                user=proposal.freelancer.user,
+                title="Project Proposal Rejected",
+                message=f"Your proposal for project '{proposal.project.name}' has been rejected."
+            )
+
+            return JsonResponse({'success': True, 'message': 'Proposal rejected', 'proposal_id': proposal.id})
+
+        return JsonResponse({'success': False, 'message': 'Cannot reject an approved proposal.'})
+
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
 
 
 # -----------------------------
