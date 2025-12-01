@@ -43,6 +43,11 @@ class Notification(models.Model):
     message = models.TextField()
     read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def mark_as_read(self):
+        if not self.read:
+            self.read = True
+            self.save()
 
     def __str__(self):
         return f"{self.user.username} - {self.title}"

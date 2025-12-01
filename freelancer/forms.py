@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from accounts.models import CustomUser
-from .models import FreelancerProfile , Skill , Certification , PortfolioItem , Milestone
+from .models import FreelancerProfile ,Milestone
 from projects.models import Project , ProjectProposal
 
 class FreelancerSignupForm(UserCreationForm):
@@ -47,39 +47,47 @@ class FreelancerProfileForm(forms.ModelForm):
 
 
 
-class SkillForm(forms.ModelForm):
-    class Meta:
-        model = Skill
-        fields = ['name', 'proficiency']
-        widgets = {
-            'proficiency': forms.Select(choices=[
-                ('BEGINNER', 'Beginner'),
-                ('INTERMEDIATE', 'Intermediate'),
-                ('EXPERT', 'Expert')
-            ])
-        }
+# class SkillForm(forms.ModelForm):
+#     class Meta:
+#         model = Skill
+#         fields = ['name', 'proficiency', 'image']  # ✅ Added image field
+#         widgets = {
+#             'proficiency': forms.Select(choices=[
+#                 ('BEGINNER', 'Beginner'),
+#                 ('INTERMEDIATE', 'Intermediate'),
+#                 ('EXPERT', 'Expert')
+#             ])
+#         }
+
+#     # Optional: Add a custom label or help text
+#     image = forms.ImageField(required=False, label="Skill Icon", help_text="Upload an optional image for this skill")
+
+
+
+# class CertificationForm(forms.ModelForm):
+#     class Meta:
+#         model = Certification
+#         fields = ['title', 'issuer', 'issue_date', 'certificate_url', 'certificate_file', 'certificate_image']
+#         widgets = {
+#             'issue_date': forms.DateInput(attrs={'type': 'date'}),
+#         }
 
 
 
 
-class CertificationForm(forms.ModelForm):
-    class Meta:
-        model = Certification
-        fields = ['title', 'issuer', 'issue_date', 'certificate_url', 'certificate_file']
-        widgets = {
-            'issue_date': forms.DateInput(attrs={'type': 'date'}),
-        }
 
+# class PortfolioForm(forms.ModelForm):
+#     class Meta:
+#         model = PortfolioItem
+#         fields = ['title', 'description', 'file', 'preview_image', 'live_link']
+#         widgets = {
+#             'title': forms.TextInput(attrs={'class': 'form-control'}),
+#             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+#             'file': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+#             'preview_image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+#             'live_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Enter live project URL'}),
+#         }
 
-
-
-class PortfolioForm(forms.ModelForm):
-    class Meta:
-        model = PortfolioItem
-        fields = ['title', 'description', 'file', 'preview_image']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-        }
 
 
 

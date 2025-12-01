@@ -17,7 +17,6 @@
             padding: 0;
             font-family: 'Poppins', sans-serif;
             background-color: #b71c1c;
-            /* deep red background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -84,9 +83,21 @@
             background-color: #8e1414;
         }
 
-        .error {
-            color: red;
+        .message {
             font-size: 0.9rem;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .message.error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .message.success {
+            background-color: #d1fae5;
+            color: #047857;
         }
 
         .login-footer {
@@ -116,18 +127,25 @@
     <div class="login-wrapper">
         <img src="{% static 'images/logo.png' %}" alt="Logo">
         <h1>Login</h1>
+
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div class="message error">{{ message }}</div>
+        {% elif message.tags == 'success' and 'login' in message.extra_tags %}
+        <div class="message success">{{ message }}</div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
         <form method="post">
             {% csrf_token %}
-            {% if messages %}
-            {% for message in messages %}
-            <p class="error">{{ message }}</p>
-            {% endfor %}
-            {% endif %}
             {{ form.as_p }}
             <button type="submit">Login</button>
         </form>
+
         <div class="login-footer">
-            Don't have an account? <a href="{% url 'startup_signup' %}">Sign Up</a>
+            Don't have an account? <a href="{% url 'startup:startup_signup' %}">Sign Up</a>
         </div>
     </div>
 </body>

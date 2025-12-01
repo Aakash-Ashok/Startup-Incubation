@@ -8,58 +8,60 @@
     <!-- ===== HEADER SECTION ===== -->
     <div class="header-card">
         <div class="profile-area">
-            {% if request.user.freelancer_profile.profile_picture %}
-            <img src="{{ request.user.freelancer_profile.profile_picture.url }}" alt="Profile"
-                style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+            {% if profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}" alt="Profile" class="profile-img">
             {% else %}
-            <img src="/media/freelancers/ic_launcher.png" alt="Profile"
-                style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+            <img src="/media/freelancers/ic_launcher.png" alt="Profile" class="profile-img">
             {% endif %}
-            <div>
-                <h2 class="freelancer-name">Welcome, {{ user.first_name }}</h2>
+            <div class="profile-info">
+                <h2 class="freelancer-name" title="{{ user.email }}">Welcome, {{ user.first_name }}</h2>
                 <p class="status-line">
-                    Status:
-                    <span class="badge {{ profile.availability|lower }}">{{ profile.availability }}</span>
+                    Status: <span class="badge {{ profile.availability|lower }}">{{ profile.availability }}</span>
                 </p>
             </div>
         </div>
         <a href="{% url 'freelancer:freelancer_profile_edit' %}" class="btn-primary">Edit Profile</a>
     </div>
 
-    <!-- ===== STATS GRID ===== -->
+    <!-- ===== STATS GRID WITH SVG ICONS ===== -->
     <div class="stats-section">
+        {% for stat in stats %}
         <div class="stat-card">
-            <h3>{{ proposals_count }}</h3>
-            <p>Total Proposals</p>
+
+            <!-- SMALL BLUE SVG ICONS -->
+            <div class="stat-icon">
+                {% if stat.title == 'Total Proposals' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M4 3h14v2H4zm0 4h10v2H4zm0 4h14v2H4zm0 4h10v2H4z"/></svg>
+
+                {% elif stat.title == 'Pending Proposals' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm1 11h-2V7h2Zm0 4h-2v-2h2Z"/></svg>
+
+                {% elif stat.title == 'Assigned Projects' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M4 4h16v2H4zm0 4h12v2H4zm0 4h16v2H4z"/></svg>
+
+                {% elif stat.title == 'Completed Projects' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="m10 15-3.5-3.5 1.41-1.42L10 12.17l6.09-6.09 1.41 1.41z"/></svg>
+
+                {% elif stat.title == 'New Notifications' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6.5v-4A6.01 6.01 0 0 0 12 3a6.01 6.01 0 0 0-6 6.5v4L4 18v1h16v-1Z"/></svg>
+
+                {% else %}
+                <svg width="24" height="24" fill="#1976d2"><circle cx="12" cy="12" r="10"/></svg>
+                {% endif %}
+            </div>
+
+            <h3>{{ stat.value }}</h3>
+            <p>{{ stat.title }}</p>
         </div>
-        <div class="stat-card">
-            <h3>{{ pending_proposals }}</h3>
-            <p>Pending Proposals</p>
-        </div>
-        <div class="stat-card">
-            <h3>{{ assigned_count }}</h3>
-            <p>Assigned Projects</p>
-        </div>
-        <div class="stat-card">
-            <h3>{{ completed_count }}</h3>
-            <p>Completed Projects</p>
-        </div>
-        <div class="stat-card">
-            <h3>₹{{ earnings|default:"0.00" }}</h3>
-            <p>Total Earnings</p>
-        </div>
-        <div class="stat-card">
-            <h3>{{ notifications_count }}</h3>
-            <p>New Notifications</p>
-        </div>
+        {% endfor %}
     </div>
 
     <!-- ===== NOTIFICATIONS ===== -->
     <div class="notifications-card">
         <div class="section-header">
-            <h3>🔔 Recent Notifications</h3>
+            <h3>Recent Notifications</h3>
             {% if notifications %}
-            <a href="#" class="view-all">View All</a>
+            <a href="{% url 'freelancer:freelancer_notifications' %}" class="view-all">View All</a>
             {% endif %}
         </div>
 
@@ -71,6 +73,15 @@
                     <p>{{ note.message }}</p>
                     <span class="note-time">{{ note.created_at|date:"M d, Y H:i" }}</span>
                 </div>
+                {% if not note.read %}
+                <form method="post" action="{% url 'freelancer:mark_notification_read' note.id %}" style="display:inline;">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <button type="submit" class="btn-mark-read">Mark as Read</button>
+</form>
+
+
+                {% endif %}
             </li>
             {% endfor %}
         </ul>
@@ -79,208 +90,129 @@
         {% endif %}
     </div>
 
-    
 </div>
 
 <style>
-    /* === Layout === */
+    /* ===== Layout Wrapper ===== */
     .dashboard-wrapper {
         max-width: 1100px;
-        margin: 40px auto;
-        padding: 25px;
+        margin: 20px auto;
+        padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 30px;
+        gap: 25px;
     }
 
-    /* === Header Section === */
+    /* ===== Header Section (Reduced Padding + Minimal Look) ===== */
     .header-card {
-        background: white;
-        padding: 25px 30px;
-        border-radius: 14px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background: #fff;
+        padding: 20px 25px; /* reduced from 35px 40px */
+        border-radius: 14px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.04); /* flatter shadow */
     }
 
     .profile-area {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 16px;
     }
 
-    .profile-pic {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
+    .profile-img {
+        width: 70px;  
+        height: 70px;
+        border-radius: 10px;
         object-fit: cover;
-        border: 3px solid #1976d2;
+        border: 2px solid #1976d2;
     }
 
     .freelancer-name {
-        font-size: 1.4rem;
         margin: 0;
-    }
-
-    .status-line {
-        margin-top: 5px;
-        color: #555;
+        font-size: 1.4rem;
+        color: #1976d2;
     }
 
     .badge {
         padding: 4px 10px;
         border-radius: 6px;
         font-weight: 600;
-        color: white;
-    }
-
-    .badge.available {
-        background: #4caf50;
-    }
-
-    .badge.busy {
-        background: #ff9800;
-    }
-
-    .badge.offline {
-        background: #9e9e9e;
-    }
-
-    /* === Buttons === */
-    .btn-primary,
-    .btn-secondary {
-        text-decoration: none;
-        font-weight: 600;
-        border-radius: 8px;
-        transition: 0.3s ease;
-    }
-
-    .btn-primary {
-        background: #1976d2;
-        color: white;
-        padding: 10px 18px;
-    }
-
-    .btn-primary:hover {
-        background: #1565c0;
-    }
-
-    .btn-secondary {
-        background: #1976d2;
         color: #fff;
-        padding: 12px 20px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 0.85rem;
+        text-transform: capitalize;
     }
 
-    .btn-secondary:hover {
-        background: #1565c0;
-    }
-
-    /* === Stats Section === */
+    /* ===== Stats Section (NO SHADOW, FLAT) ===== */
     .stats-section {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
     }
 
     .stat-card {
         background: #fff;
-        border-radius: 12px;
-        padding: 20px;
+        border-radius: 10px;
+        padding: 16px;
         text-align: center;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease;
+        border: 1px solid rgba(0,0,0,0.08);  /* flat, subtle border */
+        transition: background 0.2s ease;
     }
 
     .stat-card:hover {
-        transform: translateY(-4px);
+        background: #f4f9ff;
     }
 
-    .stat-card h3 {
-        color: #1976d2;
-        font-size: 2rem;
+    .stat-icon {
         margin-bottom: 8px;
     }
 
-    .stat-card p {
-        color: #555;
+    .stat-card h3 {
         margin: 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #1976d2;
     }
 
-    /* === Notifications Section === */
+    .stat-card p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #444;
+    }
+
+    /* ===== Notifications ===== */
     .notifications-card {
         background: #fff;
-        border-radius: 12px;
-        padding: 20px 25px;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-
-    .section-header h3 {
-        margin: 0;
-        color: #1976d2;
-    }
-
-    .view-all {
-        font-size: 0.9rem;
-        color: #1976d2;
-        text-decoration: none;
-    }
-
-    .view-all:hover {
-        text-decoration: underline;
-    }
-
-    .notifications-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+        border-radius: 10px;
+        padding: 18px 20px;
+        border: 1px solid rgba(0,0,0,0.08);  /* flat border */
     }
 
     .note-item {
-        padding: 12px 15px;
-        border-radius: 8px;
-        background: #f8f9fa;
-        margin-bottom: 10px;
-        border-left: 4px solid transparent;
+        border-left: 3px solid transparent;
+        background: #f8f9fb;
+        border-radius: 6px;
+        padding: 10px;
     }
 
     .note-item.unread {
+        background: #eaf3ff;
         border-left-color: #1976d2;
-        background: #eef5ff;
+        font-weight: 500;
     }
 
-    .note-content p {
-        margin: 0 0 4px 0;
-        color: #333;
+    .btn-mark-read {
+        background: #1976d2;
+        padding: 4px 10px;
+        color: #fff;
+        font-size: 0.75rem;
+        border-radius: 4px;
     }
 
-    .note-time {
-        font-size: 0.8rem;
-        color: #777;
-    }
-
-    .no-data {
-        text-align: center;
-        color: #777;
-    }
-
-    /* === Quick Links === */
-    .quick-links {
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 15px;
+    /* Responsive */
+    @media(max-width:650px) {
+        .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .profile-img { width: 60px;height: 60px; }
     }
 </style>
 {% endblock %}

@@ -15,9 +15,9 @@ def login_view(request):
                 login(request, user)
                 # Redirect based on role
                 if user.role == 'STARTUP':
-                    return redirect('startup_dashboard')
+                    return redirect('startup:startup_dashboard')
                 elif user.role == 'FREELANCER':
-                    return redirect('freelancer_dashboard')
+                    return redirect('freelancer:freelancer_dashboard')
                 elif user.role == 'MENTOR':
                     return redirect('mentor_dashboard')
                 elif user.role == 'INVESTOR':

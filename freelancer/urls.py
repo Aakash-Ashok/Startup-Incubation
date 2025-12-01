@@ -5,38 +5,42 @@ urlpatterns = [
     # -----------------------------
     # Auth / Dashboard
     # -----------------------------
+    path("dashboard/", views.freelancer_dashboard, name="freelancer_dashboard"),
     path("signup/", views.freelancer_signup, name="freelancer_signup"),
+    path("notification/read/<int:pk>/", views.mark_notification_read, name="mark_notification_read"),
     
 
     # -----------------------------
     # 1️⃣ Profile
     # -----------------------------
-    path("profile/", views.freelancer_profile_detail, name="freelancer_profile_detail"),
-    path("profile/edit/", views.update_profile, name="freelancer_profile_edit"),
-    path("profile/create/", views.create_profile, name="freelancer_profile_create"),
+    path('profile/', views.freelancer_profile_detail, name='freelancer_profile_detail'),
+    path('profile/edit/', views.freelancer_profile_edit, name='freelancer_profile_edit'),
 
     # -----------------------------
     # 2️⃣ Skills
     # -----------------------------
-    path("skills/", views.manage_skills, name="freelancer_skills"),
-    path("skills/add/", views.manage_skills, name="freelancer_add_skill"),
+    # path('skills/', views.manage_skills, name='manage_skills'),
+    # path('skills/edit/<int:skill_id>/', views.edit_skill, name='edit_skill'),
+    # path('skills/delete/<int:skill_id>/', views.delete_skill, name='delete_skill'),
 
     # -----------------------------
     # 3️⃣ Certifications
     # -----------------------------
-    path("certifications/", views.manage_certifications, name="freelancer_certifications"),
-    path("certifications/add/", views.add_certification, name="freelancer_add_certification"),
+    # path('certifications/', views.manage_certifications, name='manage_certifications'),
+    # path('certifications/delete/<int:cert_id>/', views.delete_certification, name='delete_certification'),
 
     # -----------------------------
     # 4️⃣ Portfolio
     # -----------------------------
-    path("portfolio/", views.portfolio_list, name="freelancer_portfolio"),
-    path("portfolio/add/", views.add_portfolio_item, name="freelancer_add_portfolio"),
+    # path('portfolio/', views.portfolio_list, name='freelancer_portfolio'),
+    # path('portfolio/add/', views.add_portfolio_item, name='freelancer_add_portfolio'),
+    # path('portfolio/edit/<int:pk>/', views.edit_portfolio_item, name='freelancer_edit_portfolio'),
+    # path('portfolio/delete/<int:pk>/', views.delete_portfolio_item, name='freelancer_delete_portfolio'),
 
     # -----------------------------
     # 5️⃣ Projects & Proposals
-    # -----------------------------
-    path("projects/available/", views.available_projects, name="freelancer_available_projects"),
+    # ----------------------------- 
+    path("projects/available/", views.available_projects, name="available_projects"),
     path("projects/assigned/", views.assigned_projects, name="freelancer_assigned_projects"),
     path("projects/<int:project_id>/", views.project_detail, name="freelancer_project_detail"),
 
@@ -60,6 +64,9 @@ urlpatterns = [
     # -----------------------------
     # 8️⃣ Feedback / Earnings
     # -----------------------------
-    path("feedback/", views.feedback_list, name="freelancer_feedback"),
+    # path("feedback/", views.feedback_list, name="freelancer_feedback"),
     # path("earnings/", views.freelancer_earnings, name="freelancer_earnings"),
+    
+    path('project/<int:project_id>/complete/', views.complete_project, name='complete_project'),
+
 ]

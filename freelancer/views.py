@@ -6,19 +6,16 @@ from django.contrib.auth import login
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
+from django.utils import timezone
 
 from .forms import (
     FreelancerProfileForm,
     ProposalForm,
-    MilestoneForm,
-    SkillForm,
-    CertificationForm,
-    PortfolioForm
+    MilestoneForm
 )
 from accounts.models import Notification
 from projects.models import Project, ProjectProposal
-from .models import FreelancerProfile, Skill, Certification, PortfolioItem
+from .models import FreelancerProfile
 from accounts.supabase_helper import upload_to_supabase
 
 
@@ -48,7 +45,7 @@ def freelancer_signup(request):
             profile.user = user
             profile.save()
             login(request, user)
-            return redirect('freelancer_dashboard')  # ✅ corrected redirect
+            return redirect('freelancer:freelancer_dashboard')  # ✅ corrected redirect
         else:
             print("❌ Form errors:", user_form.errors, profile_form.errors)
     else:
@@ -66,92 +63,102 @@ def freelancer_signup(request):
 @role_required('FREELANCER')
 def freelancer_dashboard(request):
     profile = request.user.freelancer_profile
-    user=request.user
+    user = request.user
     proposals = ProjectProposal.objects.filter(freelancer=profile)
     
     # Get assigned projects through ProjectAssignment
     assigned_projects = Project.objects.filter(assignment__freelancer=profile)
     completed_projects = assigned_projects.filter(status='COMPLETED')
 
-    # Optional: Calculate earnings
-    earnings = sum(profile.earnings.values_list('amount', flat=True))
+    # Remove earnings calculation (feature temporarily removed)
+    # earnings = sum(profile.earnings.values_list('amount', flat=True))
+
+    # Prepare stats as a list of dictionaries (without earnings)
+    stats = [
+        {'title': 'Total Proposals', 'value': proposals.count()},
+        {'title': 'Pending Proposals', 'value': proposals.filter(status='PENDING').count()},
+        {'title': 'Assigned Projects', 'value': assigned_projects.count()},
+        {'title': 'Completed Projects', 'value': completed_projects.count()},
+        {'title': 'New Notifications', 'value': request.user.notifications.filter(read=False).count()},
+    ]
 
     context = {
-        'user':user,
+        'user': user,
         'profile': profile,
-        'proposals_count': proposals.count(),
-        'pending_proposals': proposals.filter(status='PENDING').count(),
-        'assigned_count': assigned_projects.count(),
-        'completed_count': completed_projects.count(),
-        'earnings': earnings,
-        'notifications_count': request.user.notifications.filter(read=False).count(),
-        'notifications': request.user.notifications.all().order_by('-created_at')[:5],
+        'stats': stats,
+        'notifications': request.user.notifications.filter(read=False).order_by('-created_at')[:5],
     }
     return render(request, 'Fdashboard.html', context)
 
+
+from django.http import JsonResponse
+@login_required
+def mark_notification_read(request, pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method")
+
+    note = get_object_or_404(Notification, pk=pk, user=request.user)
+
+    # mark read and set read_at if the field exists
+    if not note.read:
+        note.read = True
+        # prepare fields list defensively
+        update_fields = ['read']
+        if hasattr(note, 'read_at'):
+            try:
+                note.read_at = timezone.now()
+                update_fields.append('read_at')
+            except Exception:
+                # fallback: don't include read_at if any unexpected error
+                pass
+        note.save(update_fields=update_fields)
+    else:
+        # already read — nothing to change
+        pass
+
+    # respond
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+    if is_ajax:
+        return JsonResponse({'success': True, 'id': note.id})
+
+    next_url = request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER')
+    if next_url:
+        return redirect(next_url)
+    return redirect(reverse('freelancer:freelancer_notifications'))
 
 # ----------------------------------------
 # 2️⃣ Profile Management
 # ----------------------------------------
 @login_required
 @role_required('FREELANCER')
-def create_profile(request):
-    if hasattr(request.user, 'freelancer_profile'):
-        return redirect('update_freelancer_profile')
+def freelancer_profile_detail(request):
+    """Display freelancer profile in read-only form style."""
+    profile = request.user.freelancer_profile
+    return render(request, 'profile_detail.html', {'profile': profile})
+
+
+@login_required
+@role_required('FREELANCER')
+def freelancer_profile_edit(request):
+    """Edit freelancer profile."""
+    profile = request.user.freelancer_profile
 
     if request.method == 'POST':
-        form = FreelancerProfileForm(request.POST, request.FILES)
+        form = FreelancerProfileForm(request.POST, request.FILES, instance=profile)
+        full_name = request.POST.get('full_name')
         if form.is_valid():
-            profile = form.save(commit=False)
-            profile.user = request.user
-
-            if 'profile_picture' in request.FILES:
-                try:
-                    img_url = upload_to_supabase(request.FILES['profile_picture'], folder='freelancers')
-                    profile.profile_picture = img_url
-                except Exception as e:
-                    print("⚠️ Image upload failed:", e)
-
-            profile.save()
-            messages.success(request, "Profile created successfully.")
-            return redirect('freelancer_dashboard')
+            prof = form.save(commit=False)
+            if full_name:
+                profile.full_name = full_name
+            prof.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('freelancer:freelancer_profile_detail')
         else:
             messages.error(request, "Please fix the errors below.")
     else:
-        form = FreelancerProfileForm()
-
-    return render(request, 'freelancer/create_profile.html', {'form': form})
-
-
-@login_required
-@role_required('FREELANCER')
-def update_profile(request):
-    profile = request.user.freelancer_profile
-    if request.method == 'POST':
-        form = FreelancerProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            prof = form.save(commit=False)
-            if 'profile_picture' in request.FILES:
-                try:
-                    img_url = upload_to_supabase(request.FILES['profile_picture'], folder='freelancers')
-                    prof.profile_picture = img_url
-                except Exception as e:
-                    print("⚠️ Image upload failed:", e)
-            prof.save()
-            messages.success(request, "Profile updated successfully.")
-            return redirect('freelancer_profile_detail')
-        else:
-            messages.error(request, "Please correct the errors below.")
-    else:
         form = FreelancerProfileForm(instance=profile)
-    return render(request, 'freelancer/update_profile.html', {'form': form, 'profile': profile})
 
-
-@login_required
-@role_required('FREELANCER')
-def freelancer_profile_detail(request):
-    profile = request.user.freelancer_profile
-    return render(request, 'freelancer/profile_detail.html', {'profile': profile})
+    return render(request, 'profile_edit.html', {'form': form, 'profile': profile})
 
 
 # ----------------------------------------
@@ -206,18 +213,21 @@ def submit_proposal(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     freelancer = request.user.freelancer_profile
 
-    # Prevent duplicate proposals
-    if ProjectProposal.objects.filter(project=project, freelancer=freelancer).exists():
-        messages.info(request, "You already submitted a proposal for this project.")
+    previous_proposal = ProjectProposal.objects.filter(project=project, freelancer=freelancer).first()
+
+    # Allow resubmission only if project not assigned
+    if previous_proposal and previous_proposal.status == 'APPROVED':
+        messages.info(request, "Your proposal was already approved. Cannot resubmit.")
         return redirect('freelancer:freelancer_proposals')
 
     if request.method == 'POST':
-        form = ProposalForm(request.POST)
+        form = ProposalForm(request.POST, request.FILES, instance=previous_proposal if previous_proposal else None)
         if form.is_valid():
             proposal = form.save(commit=False)
             proposal.project = project
             proposal.freelancer = freelancer
             proposal.status = 'PENDING'
+            proposal.rejection_note = None  # Clear old rejection note
             proposal.save()
 
             messages.success(request, "Proposal submitted successfully.")
@@ -225,12 +235,14 @@ def submit_proposal(request, project_id):
         else:
             messages.error(request, "Please correct the errors below.")
     else:
-        form = ProposalForm()
+        form = ProposalForm(instance=previous_proposal)
 
     return render(request, 'submit_proposal.html', {
         'form': form,
-        'project': project
+        'project': project,
+        'previous_proposal': previous_proposal
     })
+
 
 
 
@@ -294,81 +306,165 @@ def update_milestone(request, milestone_id):
 # ----------------------------------------
 # 5️⃣ Skills & Certifications
 # ----------------------------------------
-@login_required
-@role_required('FREELANCER')
-def manage_skills(request):
-    profile = request.user.freelancer_profile
-    skills = Skill.objects.filter(freelancer=profile)
-    if request.method == 'POST':
-        form = SkillForm(request.POST)
-        if form.is_valid():
-            skill = form.save(commit=False)
-            skill.freelancer = profile
-            skill.save()
-            messages.success(request, "Skill added successfully.")
-            return redirect('manage_skills')
-    else:
-        form = SkillForm()
-    return render(request, 'freelancer/manage_skills.html', {'skills': skills, 'form': form})
+# @login_required
+# @role_required('FREELANCER')
+# def manage_skills(request):
+#     profile = request.user.freelancer_profile
+#     skills = Skill.objects.filter(freelancer=profile)
+
+#     if request.method == 'POST':
+#         form = SkillForm(request.POST, request.FILES)  # ✅ add request.FILES
+#         if form.is_valid():
+#             skill = form.save(commit=False)
+#             skill.freelancer = profile
+#             skill.save()
+#             messages.success(request, "Skill added successfully.")
+#             return redirect('freelancer:manage_skills')
+#     else:
+#         form = SkillForm()
+
+#     return render(request, 'manage_skills.html', {'skills': skills, 'form': form})
 
 
-@login_required
-@role_required('FREELANCER')
-def add_certification(request):
-    profile = request.user.freelancer_profile
-    if request.method == 'POST':
-        form = CertificationForm(request.POST, request.FILES)
-        if form.is_valid():
-            cert = form.save(commit=False)
-            cert.freelancer = profile
-            cert.save()
-            messages.success(request, "Certification added successfully.")
-            return redirect('manage_certifications')
-    else:
-        form = CertificationForm()
-    return render(request, 'freelancer/add_certification.html', {'form': form})
+# @login_required
+# @role_required('FREELANCER')
+# def edit_skill(request, skill_id):
+#     profile = request.user.freelancer_profile
+#     skill = get_object_or_404(Skill, id=skill_id, freelancer=profile)
+
+#     if request.method == 'POST':
+#         form = SkillForm(request.POST, request.FILES, instance=skill)  # handle uploaded file
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, "Skill updated successfully.")
+#             return redirect('freelancer:manage_skills')
+#     else:
+#         form = SkillForm(instance=skill)
+
+#     return render(request, 'edit_skill.html', {'form': form, 'skill': skill})
 
 
-@login_required
-@role_required('FREELANCER')
-def manage_certifications(request):
-    profile = request.user.freelancer_profile
-    certifications = Certification.objects.filter(freelancer=profile)
-    return render(request, 'freelancer/manage_certifications.html', {'certifications': certifications})
+
+# @login_required
+# @role_required('FREELANCER')
+# def delete_skill(request, skill_id):
+#     profile = request.user.freelancer_profile
+#     skill = get_object_or_404(Skill, id=skill_id, freelancer=profile)
+
+#     if request.method == 'POST':
+#         skill.delete()
+#         messages.success(request, "Skill deleted successfully.")
+#         return redirect('freelancer:manage_skills')
 
 
-# ----------------------------------------
-# 6️⃣ Portfolio Management
-# ----------------------------------------
-@login_required
-@role_required('FREELANCER')
-def portfolio_list(request):
-    profile = request.user.freelancer_profile
-    items = PortfolioItem.objects.filter(freelancer=profile)
-    return render(request, 'freelancer/portfolio_list.html', {'items': items})
+
+# @login_required
+# @role_required('FREELANCER')
+# def manage_certifications(request):
+#     profile = request.user.freelancer_profile
+#     certifications = Certification.objects.filter(freelancer=profile)
+#     edit_id = request.GET.get('edit')
+#     edit_cert = None
+
+#     if edit_id:
+#         edit_cert = get_object_or_404(Certification, id=edit_id, freelancer=profile)
+
+#     if request.method == 'POST':
+#         if edit_cert:
+#             form = CertificationForm(request.POST, request.FILES, instance=edit_cert)
+#             msg = "Certification updated successfully."
+#         else:
+#             form = CertificationForm(request.POST, request.FILES)
+#             msg = "Certification added successfully."
+
+#         if form.is_valid():
+#             cert = form.save(commit=False)
+#             cert.freelancer = profile
+#             cert.save()
+#             messages.success(request, msg)
+#             return redirect('freelancer:manage_certifications')
+#     else:
+#         form = CertificationForm(instance=edit_cert)
+
+#     return render(request, 'manage_certifications.html', {
+#         'form': form,
+#         'certifications': certifications,
+#         'edit_cert': edit_cert,
+#     })
 
 
-@login_required
-@role_required('FREELANCER')
-def add_portfolio_item(request):
-    profile = request.user.freelancer_profile
-    if request.method == 'POST':
-        form = PortfolioForm(request.POST, request.FILES)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.freelancer = profile
-            if 'file' in request.FILES:
-                try:
-                    file_url = upload_to_supabase(request.FILES['file'], folder='portfolios')
-                    item.file = file_url
-                except Exception as e:
-                    print("File upload error:", e)
-            item.save()
-            messages.success(request, "Portfolio item added successfully.")
-            return redirect('portfolio_list')
-    else:
-        form = PortfolioForm()
-    return render(request, 'freelancer/add_portfolio.html', {'form': form})
+# @login_required
+# @role_required('FREELANCER')
+# def delete_certification(request, cert_id):
+#     profile = request.user.freelancer_profile
+#     cert = get_object_or_404(Certification, id=cert_id, freelancer=profile)
+#     cert.delete()
+#     messages.success(request, "Certification deleted successfully.")
+#     return redirect('freelancer:manage_certifications')
+
+
+
+
+# # ----------------------------------------
+# # 6️⃣ Portfolio Management
+# # ----------------------------------------
+# @login_required
+# @role_required('FREELANCER')
+# def portfolio_list(request):
+#     profile = request.user.freelancer_profile
+#     portfolio_items = PortfolioItem.objects.filter(freelancer=profile)
+#     return render(request, 'portfolio_list.html', {'portfolio_items': portfolio_items})
+
+# # Add a new portfolio item
+# @login_required
+# @role_required('FREELANCER')
+# def add_portfolio_item(request):
+#     profile = request.user.freelancer_profile
+#     if request.method == 'POST':
+#         form = PortfolioForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             item = form.save(commit=False)
+#             item.freelancer = profile
+#             item.save()
+#             messages.success(request, "Portfolio item added successfully.")
+#             return redirect('freelancer:freelancer_portfolio')
+#     else:
+#         form = PortfolioForm()
+#     return render(request, 'add_portfolio.html', {'form': form})
+
+# # Edit an existing portfolio item
+# @login_required
+# @role_required('FREELANCER')
+# def edit_portfolio_item(request, pk):
+#     profile = request.user.freelancer_profile
+#     item = get_object_or_404(PortfolioItem, pk=pk, freelancer=profile)
+    
+#     if request.method == 'POST':
+#         form = PortfolioForm(request.POST, request.FILES, instance=item)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, "Portfolio item updated successfully.")
+#             return redirect('freelancer:freelancer_portfolio')
+#     else:
+#         form = PortfolioForm(instance=item)
+    
+#     return render(request, 'edit_portfolio.html', {'form': form, 'item': item})
+
+
+# # Delete a portfolio item
+# @login_required
+# @role_required('FREELANCER')
+# def delete_portfolio_item(request, pk):
+#     profile = request.user.freelancer_profile
+#     item = get_object_or_404(PortfolioItem, pk=pk, freelancer=profile)
+    
+#     if request.method == 'POST':
+#         item.delete()
+#         messages.success(request, f'Portfolio item "{item.title}" deleted successfully.')
+#         return redirect('freelancer:freelancer_portfolio')
+    
+#     # Optional: show confirmation page before deletion
+#     return render(request, 'confirm_delete_portfolio.html', {'item': item})
 
 
 # ----------------------------------------
@@ -487,5 +583,28 @@ def delete_milestone(request, milestone_id):
     milestone.delete()
     messages.success(request, "Milestone deleted successfully.")
     return redirect('milestone_list', project_id=project_id)
+
+
+@login_required
+@role_required('FREELANCER')
+def complete_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    freelancer = request.user.freelancer_profile
+
+    # Get the assignment
+    assignment = getattr(project, 'assignment', None)
+    if not assignment or assignment.freelancer != freelancer:
+        messages.error(request, "You are not assigned to this project.")
+        return redirect('freelancer:freelancer_assigned_projects')
+
+    if project.status != 'COMPLETED':
+        project.status = 'COMPLETED'
+        project.save()
+        messages.success(request, f"Project '{project.name}' marked as completed!")
+    else:
+        messages.info(request, f"Project '{project.name}' is already completed.")
+
+    return redirect('freelancer:freelancer_assigned_projects')
+
 
 

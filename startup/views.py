@@ -52,7 +52,7 @@ def startup_signup(request):
                     print(f"⚠️ Error uploading logo to Supabase: {e}")
             profile.save()
             login(request, user)
-            return redirect('startup_dashboard')
+            return redirect('startup:startup_dashboard')
         else:
             print("❌ Form errors:", user_form.errors, profile_form.errors)
     else:
@@ -181,7 +181,7 @@ def create_project(request):
                     )
 
             messages.success(request, "✅ Project created successfully!")
-            return redirect('startup_projects')
+            return redirect('startup:startup_projects')
         else:
             messages.error(request, "⚠️ Please correct the errors below.")
     else:
@@ -203,7 +203,7 @@ def update_project(request, project_id):
             project.save()
             form.save_m2m()
             messages.success(request, "✅ Project updated successfully.")
-            return redirect('project_detail', project_id=project.id)
+            return redirect('startup:project_detail', project_id=project.id)
     else:
         form = ProjectForm(instance=project, startup=request.user.startup_profile)
     return render(request, 'project_edit.html', {'form': form, 'project': project, 'update': True})
@@ -220,7 +220,7 @@ def delete_project(request, project_id):
     project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
     if request.method == 'POST':
         project.delete()
-        return redirect('startup_projects')
+        return redirect('startup:startup_projects')
     return render(request, 'delete_project_confirm.html', {'project': project})
 
 # -----------------------------
@@ -310,16 +310,16 @@ def reject_proposal(request, proposal_id):
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         proposal = get_object_or_404(ProjectProposal, id=proposal_id)
 
-        # Only reject if not already approved
         if proposal.status != 'APPROVED':
+            rejection_note = request.POST.get('rejection_note', '').strip()
             proposal.status = 'REJECTED'
+            proposal.rejection_note = rejection_note
             proposal.save()
 
-            # Notify freelancer
             Notification.objects.create(
                 user=proposal.freelancer.user,
                 title="Project Proposal Rejected",
-                message=f"Your proposal for project '{proposal.project.name}' has been rejected."
+                message=f"Your proposal for project '{proposal.project.name}' was rejected. Reason: {rejection_note}"
             )
 
             return JsonResponse({'success': True, 'message': 'Proposal rejected', 'proposal_id': proposal.id})
@@ -327,6 +327,7 @@ def reject_proposal(request, proposal_id):
         return JsonResponse({'success': False, 'message': 'Cannot reject an approved proposal.'})
 
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
 
 
 
@@ -377,7 +378,7 @@ def delete_employee(request, employee_id):
     employee = get_object_or_404(Employee, id=employee_id, startup=request.user.startup_profile)
     if request.method == 'POST':
         employee.delete()
-        return redirect('startup_employees')
+        return redirect('startup:startup_employees')
     return render(request, 'delete_employee_confirm.html', {'employee': employee , 'profile': request.user.startup_profile})
 
 # -----------------------------
@@ -393,7 +394,7 @@ def mark_notification_read(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.read = True
     notification.save()
-    return redirect('notifications_list')
+    return redirect('startup:notifications_list')
 
 @login_required
 def notification_detail(request, notification_id):
@@ -461,7 +462,7 @@ def create_funding(request):
                     )
 
                 messages.success(request, "Funding round created successfully!")
-                return redirect('funding_list')
+                return redirect('startup:funding_list')
 
             except ValidationError as e:
                 form.add_error(None, e.message)
@@ -487,7 +488,7 @@ def update_funding(request, funding_id):
     # Restrict updates if already approved
     if funding.status == 'APPROVED':
         messages.error(request, "You cannot update an approved funding request.")
-        return redirect('funding_list')
+        return redirect('startup:funding_list')
 
     old_status = funding.status
 
@@ -523,7 +524,7 @@ def update_funding(request, funding_id):
                 funding.log_status_change(old_status, updated_funding.status)
 
             messages.success(request, "Funding request updated successfully.")
-            return redirect('funding_list')
+            return redirect('startup:funding_list')
     else:
         form = FundingForm(instance=funding)
 
@@ -545,7 +546,7 @@ def delete_funding(request, funding_id):
     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
     if request.method == 'POST':
         funding.delete()
-        return redirect('funding_list')
+        return redirect('startup:funding_list')
     return render(request, 'delete_funding_confirm.html', {'funding': funding , 'profile': request.user.startup_profile})
 
 # -----------------------------
@@ -594,7 +595,7 @@ def create_session(request):
             )
 
             messages.success(request, "Session request sent and pending mentor approval.")
-            return redirect('startup_sessions')
+            return redirect('startup:startup_sessions')
     else:
         form = MentorshipSessionForm()
     return render(request, 'create_session.html', {'form': form , 'profile': request.user.startup_profile })
@@ -651,7 +652,7 @@ def update_session(request, session_id):
 
             updated_session.save()
             messages.success(request, "Session updated successfully.")
-            return redirect('startup_sessions')
+            return redirect('startup:startup_sessions')
         else:
             messages.error(request, "Please correct the errors below.")
 
@@ -687,7 +688,7 @@ def cancel_session(request, session_id):
         )
 
         messages.success(request, "Session cancelled successfully.")
-        return redirect('startup_sessions')
+        return redirect('startup:startup_sessions')
 
     return render(request, 'cancel_session_confirm.html', {'session': session , 'profile': request.user.startup_profile})
 
@@ -716,7 +717,7 @@ def assign_employee_to_project(request, project_id):
                 title="Project Assigned",
                 message=f"You have been assigned to project: {project.name}"
             )
-        return redirect('startup_projects')
+        return redirect('startup:startup_projects')
     employees = request.user.startup_profile.employees.all()
     return render(request, 'assign_employee.html', {'project': project, 'employees': employees})
 

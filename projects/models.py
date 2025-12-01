@@ -21,6 +21,12 @@ class Project(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.startup.startup_name})"
+    
+    def assigned_freelancer(self):
+        """Returns the assigned freelancer for this project, if any."""
+        if hasattr(self, 'assignment') and self.assignment.freelancer:
+            return self.assignment.freelancer
+        return None
 
 class ProjectProposal(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="proposals")
