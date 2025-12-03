@@ -19,7 +19,7 @@ def login_view(request):
                 elif user.role == 'FREELANCER':
                     return redirect('freelancer:freelancer_dashboard')
                 elif user.role == 'MENTOR':
-                    return redirect('mentor_dashboard')
+                    return redirect('mentors:dashboard')
                 elif user.role == 'INVESTOR':
                     return redirect('investor_dashboard')
                 else:

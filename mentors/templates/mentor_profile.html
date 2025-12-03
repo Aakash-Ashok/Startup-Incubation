@@ -1,0 +1,177 @@
+{% extends "mentor_base.html" %}
+{% block title %}Your Profile — SubHub Mentor Portal{% endblock %}
+
+{% block page_title %}Your Profile{% endblock %}
+{% block page_subtitle %}Manage and review your mentor information{% endblock %}
+
+{% block content %}
+<style>
+  /* Page layout */
+  .profile-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .profile-card {
+    background: var(--card-bg);
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.04);
+    max-width: 720px;
+  }
+
+  .profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .name {
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .email {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .meta-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .meta-item {
+    border: 1px solid rgba(8,160,148,0.06);
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .meta-label {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .meta-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--accent-teal);
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-weight: 700;
+    margin-top: 20px;
+  }
+
+  .link-row {
+    margin-top: 8px;
+  }
+
+  .muted-link {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .muted-link:hover {
+    color: var(--accent-teal);
+  }
+
+  .profile-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--accent-teal);
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn-primary:hover {
+    background: var(--accent-teal-dark);
+  }
+
+  .btn-flat {
+    background: transparent;
+    border: 1px solid rgba(8,160,148,0.1);
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: var(--accent-teal);
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn-flat:hover {
+    background: rgba(8,160,148,0.06);
+  }
+
+</style>
+
+<div class="profile-wrapper">
+
+  <div class="profile-card">
+    <div class="profile-header">
+      <div>
+        <div class="name">
+          {{ mentor_profile.user.first_name|default:mentor_profile.user.username }}
+        </div>
+        <div class="email">{{ mentor_profile.user.email }}</div>
+      </div>
+
+      
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Expertise</div>
+        <div class="meta-value">{{ mentor_profile.expertise_area|default:"—" }}</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Experience</div>
+        <div class="meta-value">{{ mentor_profile.experience_years }} years</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Total Sessions</div>
+        <div class="meta-value">{{ sessions|length }}</div>
+      </div>
+    </div>
+
+    <div class="section-title">LinkedIn</div>
+    <div class="link-row">
+      {% if mentor_profile.linkedin_profile %}
+        <a href="{{ mentor_profile.linkedin_profile }}" 
+           target="_blank" 
+           class="muted-link">
+           {{ mentor_profile.linkedin_profile }}
+        </a>
+      {% else %}
+        <div class="muted">Not provided</div>
+      {% endif %}
+    </div>
+
+    <div class="profile-actions">
+      <a class="btn-primary" href="{% url 'mentors:mentorship_sessions' %}">
+        View Sessions
+      </a>
+      <a class="btn-flat" href="{% url 'mentors:mentor_profile_edit' %}">
+        Edit Details
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

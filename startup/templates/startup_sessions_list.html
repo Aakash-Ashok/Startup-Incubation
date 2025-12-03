@@ -31,10 +31,10 @@
                     <span class="badge {{ session.approval_status|lower }}">{{ session.approval_status }}</span>
                 </td>
                 <td>
-                    <a href="{% url 'session_detail' session.id %}" class="action-link">View</a>
+                    <a href="{% url 'startup:session_detail' session.id %}" class="action-link">View</a>
 
                     {% if session.status != 'CANCELLED' %}
-                    | <a href="{% url 'update_session' session.id %}" class="action-link">Edit</a>
+                    | <a href="{% url 'startup:update_session' session.id %}" class="action-link">Edit</a>
                     {% if session.approval_status == 'APPROVED' %}
                     <span class="muted">(Re-approval required if edited)</span>
                     {% elif session.approval_status == 'PENDING' %}
@@ -42,7 +42,7 @@
                     {% elif session.approval_status == 'REJECTED' %}
                     <span class="muted">(Rejected)</span>
                     {% endif %}
-                    | <a href="{% url 'cancel_session' session.id %}" class="action-link cancel">Cancel</a>
+                    | <a href="{% url 'startup:cancel_session' session.id %}" class="action-link cancel">Cancel</a>
                     {% endif %}
                 </td>
             </tr>

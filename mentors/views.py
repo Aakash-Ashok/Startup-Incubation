@@ -10,7 +10,7 @@ class MentorSignupView(View):
     def get(self, request):
         form = MentorSignupForm()
         profile_form = MentorProfileForm()
-        return render(request, 'signup.html', {'user_form': form, 'profile_form': profile_form})
+        return render(request, 'mentorsignup.html', {'user_form': form, 'profile_form': profile_form})
 
     def post(self, request):
         user_form = MentorSignupForm(request.POST)
@@ -21,8 +21,8 @@ class MentorSignupView(View):
             profile.user = user
             profile.save()
             login(request, user)
-            return redirect("mentor:dashboard")
-        return render(request, 'signup.html', {'user_form': user_form, 'profile_form': profile_form})
+            return redirect("mentors:dashboard")
+        return render(request, 'mentorsignup.html', {'user_form': user_form, 'profile_form': profile_form})
 
 class MentorDashboardView(LoginRequiredMixin, View):
     def get(self, request):
@@ -44,7 +44,7 @@ class MentorshipSessionApproveView(LoginRequiredMixin, View):
         session.approval_status = 'APPROVED'
         session.status = 'SCHEDULED'
         session.save()
-        return redirect('mentor:mentorship_sessions')
+        return redirect('mentors:mentorship_sessions')
 
 class MentorshipSessionRejectView(LoginRequiredMixin, View):
     def post(self, request, session_id):
@@ -54,7 +54,7 @@ class MentorshipSessionRejectView(LoginRequiredMixin, View):
         session.approval_status = 'REJECTED'
         session.status = 'CANCELLED'
         session.save()
-        return redirect('mentor:mentorship_sessions')
+        return redirect('mentors:mentorship_sessions')
 
 class MentorshipSessionStatusUpdateView(LoginRequiredMixin, View):
     def post(self, request, session_id, new_status):
@@ -64,9 +64,9 @@ class MentorshipSessionStatusUpdateView(LoginRequiredMixin, View):
         if new_status in dict(MentorshipSession._meta.get_field('status').choices).keys():
             session.status = new_status
             session.save()
-        return redirect('mentor:mentorship_sessions')
+        return redirect('mentors:mentorship_sessions')
 
-class MentoProfileView(LoginRequiredMixin, View):
+class MentorProfileView(LoginRequiredMixin, View):
     def get(self, request):
         mentor_profile = get_object_or_404(MentorProfile, user=request.user)
         return render(request, 'mentor_profile.html', {'mentor_profile': mentor_profile})
@@ -82,5 +82,5 @@ class MentorProfileEditView(LoginRequiredMixin, View):
         form = MentorProfileForm(request.POST, request.FILES, instance=mentor_profile)
         if form.is_valid():
             form.save()
-            return redirect('mentor:mentor_profile')
+            return redirect('mentors:mentor_profile')
         return render(request, 'mentor_profile_edit.html', {'form': form})

@@ -2,135 +2,289 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% block title %}Mentor Portal{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SubHub Mentor Portal{% endblock %}</title>
 
   <style>
-    :root{
-      --accent-1: #ffecd2; /* light */
-      --accent-2: #fcb69f; /* warm orange */
-      --card-bg: rgba(255,255,255,0.86);
-      --muted: #6b6b6b;
-      --accent-dark: #e86f2a;
+    /* ======================================
+       🎨 TEAL-ONLY MODERN THEME (no orange)
+       ====================================== */
+    :root {
+      --g1: #f2fffb;
+      --g2: #e6fbf6;
+      --g3: #baf3e8;
+      --g4: #8fe6d8;
+
+      --accent-teal: #08a094;
+      --accent-teal-dark: #067d73;
+
+      --text: #1f2d2d;
+      --muted: #697f7f;
+
+      --sidebar-bg: rgba(255,255,255,0.18);
+      --sidebar-border: rgba(0,0,0,0.08);
+
+      --card-bg: rgba(255,255,255,0.92);
+      --focus-ring: rgba(8,160,148,0.14);
+      --btn-shadow: rgba(8,160,148,0.12);
     }
 
-    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-    body{
-      background: linear-gradient(135deg, var(--accent-1) 0%, #fff6ee 40%, var(--accent-2) 100%);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color: var(--text);
     }
 
-    /* top nav */
-    nav{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:14px 28px;
-      backdrop-filter: blur(6px);
-      background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.18));
-      box-shadow: 0 6px 18px rgba(15,20,25,0.06);
-    }
-    nav .brand{font-weight:700;color:var(--accent-dark);letter-spacing:0.2px}
-    nav .navlinks a{margin-left:14px;text-decoration:none;color:#333;font-weight:600}
-    nav .navlinks a:hover{color:var(--accent-dark)}
-
-    /* container */
-    .container{
-      width:95%;
-      max-width:1100px;
-      margin:28px auto;
-      background: var(--card-bg);
-      border-radius:12px;
-      padding:26px;
-      box-shadow: 0 10px 32px rgba(16,24,40,0.06);
-      flex: 1 0 auto;
+    body {
+      background: linear-gradient(145deg, var(--g1) 0%, var(--g2) 35%, var(--g3) 65%, var(--g4) 100%);
+      min-height: 100vh;
+      display: flex;
     }
 
-    /* utilities */
-    h1,h2,h3{margin:0 0 12px 0;color:#222}
-    p{color:var(--muted);margin:6px 0 12px 0}
-    .row{display:flex;gap:20px;flex-wrap:wrap}
-    .col{flex:1;min-width:240px}
+    /* Layout */
+    .app-shell {
+      display: flex;
+      width: 100%;
+      padding: 26px;
+      gap: 24px;
+      box-sizing: border-box;
+    }
 
-    .card{
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      padding: 20px;
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      border: 1px solid var(--sidebar-border);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      transition: width .3s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 85px;
+      min-width: 85px;
+      padding: 20px 12px;
+    }
+
+    /* Brand */
+    .brand {
+      font-weight: 900;
+      font-size: 19px;
+      color: var(--accent-teal);
+      margin-bottom: 22px;
+      padding: 6px 4px;
+      white-space: nowrap;
+      transition: .3s;
+    }
+
+    .sidebar.collapsed .brand {
+      opacity: 0;
+      pointer-events: none;
+      height: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Nav */
+    .side-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .side-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      border-radius: 12px;
+      transition: .25s ease;
+      white-space: nowrap;
+    }
+
+    .side-nav a svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .side-nav a:hover {
+      background: rgba(255,255,255,0.32);
+      color: var(--accent-teal);
+    }
+
+    .side-nav a.active {
+      background: rgba(255,255,255,0.38);
+      border-left: 4px solid var(--accent-teal);
+      padding-left: 8px;
+      color: var(--accent-teal);
+    }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
       background: #fff;
-      border-radius:10px;
-      padding:14px;
-      box-shadow: 0 6px 20px rgba(10,20,30,0.03);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
     }
 
-    /* forms */
-    form input[type="text"], form input[type="email"], form input[type="number"], form input[type="url"], form input[type="password"], form input[type="datetime-local"], form textarea, form select{
-      width:100%;
-      padding:10px 12px;
-      border-radius:8px;
-      border:1px solid #e9e7e6;
-      outline:none;
-      font-size:14px;
-      box-sizing:border-box;
-      background:#fff;
-    }
-    form label{display:block;font-weight:600;margin-bottom:6px;color:#333;font-size:13px}
-    textarea{min-height:110px;resize:vertical;padding-top:10px}
-
-    .btn{
-      display:inline-block;
-      background: linear-gradient(180deg,var(--accent-dark), #d55d1e);
-      color:#fff;
-      border:none;
-      padding:10px 14px;
-      border-radius:9px;
-      cursor:pointer;
-      font-weight:700;
-      text-decoration:none;
-      box-shadow: 0 6px 18px rgba(232,111,42,0.18);
-    }
-    .btn.secondary{
+    .collapse-btn {
+      margin-left: auto;
       background: transparent;
-      color:var(--accent-dark);
-      border: 1px solid rgba(230,111,42,0.12);
-      font-weight:700;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 18px;
     }
-    .muted{color:var(--muted);font-size:13px}
 
-    /* table */
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:12px 10px;border-bottom:1px solid #f1efee;text-align:left}
-    th{background:transparent;color:var(--accent-dark);font-weight:700}
-    tr.empty td{color:var(--muted);text-align:center;padding:18px}
+    .collapse-btn:hover {
+      color: var(--accent-teal);
+    }
 
-    /* responsive */
-    @media (max-width:800px){
-      nav{padding:12px 14px}
-      .container{padding:18px}
-      .row{flex-direction:column}
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .main-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.04);
+      min-height: 200px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .sidebar { display: none; }
+      .app-shell { padding: 16px; }
     }
   </style>
-
-  {% block extra_css %}{% endblock %}
 </head>
 <body>
-  <nav>
-    <div class="brand">Mentor Portal</div>
-    <div class="navlinks">
-      <a href="{% url 'mentor:dashboard' %}">Dashboard</a>
-      <a href="{% url 'mentor:mentorship_sessions' %}">Sessions</a>
-      <a href="{% url 'mentor:mentor_profile' %}">Profile</a>
-    </div>
-  </nav>
 
-  <main class="container">
-    {% block content %}{% endblock %}
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">SubHub Mentor Portal</div>
+
+    <nav class="side-nav">
+
+      <!-- Dashboard -->
+      <a href="{% url 'mentors:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 12l9-9 9 9" />
+          <path d="M9 21V12h6v9" />
+        </svg>
+        Dashboard
+      </a>
+
+      <!-- Sessions -->
+      <a href="{% url 'mentors:mentorship_sessions' %}" class="{% if request.resolver_match.url_name == 'mentorship_sessions' %}active{% endif %}">
+        <svg viewBox="0 0 24 24">
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <circle cx="4" cy="6" r="1" />
+          <circle cx="4" cy="12" r="1" />
+          <circle cx="4" cy="18" r="1" />
+        </svg>
+        Sessions
+      </a>
+
+      <!-- Profile -->
+      <a href="{% url 'mentors:mentor_profile' %}" class="{% if request.resolver_match.url_name == 'mentor_profile' %}active{% endif %}">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="7" r="4" />
+          <path d="M5.5 21a6.5 6.5 0 0 1 13 0" />
+        </svg>
+        Profile
+      </a>
+
+      <!-- Logout -->
+      <a href="{% url 'logout' %}" class="{% if request.resolver_match.url_name == 'logout' %}active{% endif %}">
+        <svg viewBox="0 0 24 24">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+        Logout
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="profile-thumb"></div>
+      <div>
+        <div style="font-weight:700">{{ request.user.username }}</div>
+        <div class="muted">{{ request.user.email }}</div>
+      </div>
+      <button id="collapseBtn" class="collapse-btn">≡</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div>
+      <div class="main-title">{% block page_title %}{% endblock %}</div>
+      <div class="muted">{% block page_subtitle %}{% endblock %}</div>
+    </div>
+
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+
+    {% block below_content %}{% endblock %}
   </main>
 
-  <footer style="text-align:center;padding:18px 0;color:var(--muted);font-size:13px">
-    &copy; {{ now.year }} Mentorship · Built with care
-  </footer>
+</div>
 
-  {% block extra_js %}{% endblock %}
+<script>
+  const sidebar = document.getElementById("sidebar");
+  const collapseBtn = document.getElementById("collapseBtn");
+
+  collapseBtn.onclick = () => {
+    sidebar.classList.toggle("collapsed");
+  };
+</script>
+
 </body>
 </html>

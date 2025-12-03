@@ -24,11 +24,10 @@ from accounts import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('startup/', include('startup.urls')),
     path('', views.login_view, name='login'),  
     path('startup/', include(('startup.urls', 'startup'), namespace='startup')),
     path('freelancer/', include(('freelancer.urls', 'freelancer'), namespace='freelancer')),
-    # path('mentor/', include('mentor.urls')),
+    path('mentor/', include(('mentors.urls','mentors'),namespace='mentors')),
     # path('investor/', include('investor.urls')),
 ]
 if settings.DEBUG:

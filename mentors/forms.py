@@ -14,6 +14,7 @@ class MentorSignupForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.role = 'MENTOR'
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data.get('first_name', '')
         user.last_name = self.cleaned_data.get('last_name', '')
