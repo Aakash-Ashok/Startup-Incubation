@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Mentor Portal{% endblock %}</title>
+
+  <style>
+    :root{
+      --accent-1: #ffecd2; /* light */
+      --accent-2: #fcb69f; /* warm orange */
+      --card-bg: rgba(255,255,255,0.86);
+      --muted: #6b6b6b;
+      --accent-dark: #e86f2a;
+    }
+
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{
+      background: linear-gradient(135deg, var(--accent-1) 0%, #fff6ee 40%, var(--accent-2) 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* top nav */
+    nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 28px;
+      backdrop-filter: blur(6px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.18));
+      box-shadow: 0 6px 18px rgba(15,20,25,0.06);
+    }
+    nav .brand{font-weight:700;color:var(--accent-dark);letter-spacing:0.2px}
+    nav .navlinks a{margin-left:14px;text-decoration:none;color:#333;font-weight:600}
+    nav .navlinks a:hover{color:var(--accent-dark)}
+
+    /* container */
+    .container{
+      width:95%;
+      max-width:1100px;
+      margin:28px auto;
+      background: var(--card-bg);
+      border-radius:12px;
+      padding:26px;
+      box-shadow: 0 10px 32px rgba(16,24,40,0.06);
+      flex: 1 0 auto;
+    }
+
+    /* utilities */
+    h1,h2,h3{margin:0 0 12px 0;color:#222}
+    p{color:var(--muted);margin:6px 0 12px 0}
+    .row{display:flex;gap:20px;flex-wrap:wrap}
+    .col{flex:1;min-width:240px}
+
+    .card{
+      background: #fff;
+      border-radius:10px;
+      padding:14px;
+      box-shadow: 0 6px 20px rgba(10,20,30,0.03);
+    }
+
+    /* forms */
+    form input[type="text"], form input[type="email"], form input[type="number"], form input[type="url"], form input[type="password"], form input[type="datetime-local"], form textarea, form select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #e9e7e6;
+      outline:none;
+      font-size:14px;
+      box-sizing:border-box;
+      background:#fff;
+    }
+    form label{display:block;font-weight:600;margin-bottom:6px;color:#333;font-size:13px}
+    textarea{min-height:110px;resize:vertical;padding-top:10px}
+
+    .btn{
+      display:inline-block;
+      background: linear-gradient(180deg,var(--accent-dark), #d55d1e);
+      color:#fff;
+      border:none;
+      padding:10px 14px;
+      border-radius:9px;
+      cursor:pointer;
+      font-weight:700;
+      text-decoration:none;
+      box-shadow: 0 6px 18px rgba(232,111,42,0.18);
+    }
+    .btn.secondary{
+      background: transparent;
+      color:var(--accent-dark);
+      border: 1px solid rgba(230,111,42,0.12);
+      font-weight:700;
+    }
+    .muted{color:var(--muted);font-size:13px}
+
+    /* table */
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:12px 10px;border-bottom:1px solid #f1efee;text-align:left}
+    th{background:transparent;color:var(--accent-dark);font-weight:700}
+    tr.empty td{color:var(--muted);text-align:center;padding:18px}
+
+    /* responsive */
+    @media (max-width:800px){
+      nav{padding:12px 14px}
+      .container{padding:18px}
+      .row{flex-direction:column}
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <nav>
+    <div class="brand">Mentor Portal</div>
+    <div class="navlinks">
+      <a href="{% url 'mentor:dashboard' %}">Dashboard</a>
+      <a href="{% url 'mentor:mentorship_sessions' %}">Sessions</a>
+      <a href="{% url 'mentor:mentor_profile' %}">Profile</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer style="text-align:center;padding:18px 0;color:var(--muted);font-size:13px">
+    &copy; {{ now.year }} Mentorship · Built with care
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
