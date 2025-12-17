@@ -5,6 +5,11 @@ from startup.models import StartupProfile
 class MentorProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="mentor_profile")
     expertise_area = models.CharField(max_length=200)
+    profile_image = models.ImageField(
+        upload_to="mentors/profile_images/",
+        blank=True,
+        null=True
+    )
     experience_years = models.PositiveIntegerField(default=0)
     linkedin_profile = models.URLField(blank=True, null=True)
 

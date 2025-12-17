@@ -3,6 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm
+from projects.models import Project
+from freelancer.models import FreelancerProfile
+from startup.models import StartupProfile
+from mentors.models import MentorProfile
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -34,3 +39,13 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+def index(request):
+    context = {
+        'projects_count': Project.objects.count(),
+        'freelancers_count': FreelancerProfile.objects.count(),
+        'startups_count': StartupProfile.objects.count(),
+        'mentors_count': MentorProfile.objects.count(),
+    }
+    return render(request, 'index.html', context)

@@ -404,150 +404,150 @@ def notification_detail(request, notification_id):
         notification.save()
     return render(request, 'startup/notification_detail.html', {'notification': notification})
 
-# -----------------------------
-# 7️⃣ Funding
-# -----------------------------
-@login_required
-def funding_list(request):
-    rounds = FundingRound.objects.filter(startup=request.user.startup_profile)
-    return render(request, 'funding_list.html', {'funding_rounds': rounds , 'profile': request.user.startup_profile})
+# # -----------------------------
+# # 7️⃣ Funding
+# # -----------------------------
+# @login_required
+# def funding_list(request):
+#     rounds = FundingRound.objects.filter(startup=request.user.startup_profile)
+#     return render(request, 'funding_list.html', {'funding_rounds': rounds , 'profile': request.user.startup_profile})
 
-from django.core.exceptions import ValidationError
-@login_required
-def create_funding(request):
-    if request.method == 'POST':
-        form = FundingForm(request.POST)
-        if form.is_valid():
-            funding = form.save(commit=False)
-            funding.startup = request.user.startup_profile
-            funding.status="REQUESTED"
+# from django.core.exceptions import ValidationError
+# @login_required
+# def create_funding(request):
+#     if request.method == 'POST':
+#         form = FundingForm(request.POST)
+#         if form.is_valid():
+#             funding = form.save(commit=False)
+#             funding.startup = request.user.startup_profile
+#             funding.status="REQUESTED"
 
-            try:
-                # Model-level validation
-                funding.full_clean()
-                funding.save()
-                print(f"Funding round saved: ID={funding.id}, Round={funding.round_name}")
+#             try:
+#                 # Model-level validation
+#                 funding.full_clean()
+#                 funding.save()
+#                 print(f"Funding round saved: ID={funding.id}, Round={funding.round_name}")
 
-                # ----- SEND NOTIFICATIONS -----
-                if funding.all_investors:
-                    investors = InvestorProfile.objects.all()
-                    print(f"Sending notifications to all investors ({investors.count()})")
-                    for investor in investors:
-                        try:
-                            Notification.objects.create(
-                                user=investor.user,
-                                title="New Funding Round Available",
-                                message=f"{funding.startup.startup_name} created a funding round: "
-                                        f"{funding.round_name} for ${funding.amount}"
-                            )
-                            print(f"Notification sent to {investor.user.username}")
-                        except Exception as e:
-                            print(f"Failed to send notification to {investor.user.username}: {e}")
+#                 # ----- SEND NOTIFICATIONS -----
+#                 if funding.all_investors:
+#                     investors = InvestorProfile.objects.all()
+#                     print(f"Sending notifications to all investors ({investors.count()})")
+#                     for investor in investors:
+#                         try:
+#                             Notification.objects.create(
+#                                 user=investor.user,
+#                                 title="New Funding Round Available",
+#                                 message=f"{funding.startup.startup_name} created a funding round: "
+#                                         f"{funding.round_name} for ${funding.amount}"
+#                             )
+#                             print(f"Notification sent to {investor.user.username}")
+#                         except Exception as e:
+#                             print(f"Failed to send notification to {investor.user.username}: {e}")
 
-                elif funding.investor:
-                    try:
-                        Notification.objects.create(
-                            user=funding.investor.user,
-                            title="Funding Round Created",
-                            message=f"{funding.startup.startup_name} created a funding round: "
-                                    f"{funding.round_name} for ${funding.amount}"
-                        )
-                        print(f"Notification sent to {funding.investor.user.username}")
-                    except Exception as e:
-                        print(f"Failed to send notification to {funding.investor.user.username}: {e}")
-                else:
-                    print("No investor selected and all_investors=False — no notifications sent")
-                    messages.warning(request, 
-                        "Funding saved, but no notifications were sent because no investor was selected."
-                    )
+#                 elif funding.investor:
+#                     try:
+#                         Notification.objects.create(
+#                             user=funding.investor.user,
+#                             title="Funding Round Created",
+#                             message=f"{funding.startup.startup_name} created a funding round: "
+#                                     f"{funding.round_name} for ${funding.amount}"
+#                         )
+#                         print(f"Notification sent to {funding.investor.user.username}")
+#                     except Exception as e:
+#                         print(f"Failed to send notification to {funding.investor.user.username}: {e}")
+#                 else:
+#                     print("No investor selected and all_investors=False — no notifications sent")
+#                     messages.warning(request, 
+#                         "Funding saved, but no notifications were sent because no investor was selected."
+#                     )
 
-                messages.success(request, "Funding round created successfully!")
-                return redirect('startup:funding_list')
+#                 messages.success(request, "Funding round created successfully!")
+#                 return redirect('startup:funding_list')
 
-            except ValidationError as e:
-                form.add_error(None, e.message)
-                messages.error(request, "Validation error — please check your inputs.")
-                print("Validation error:", e)
+#             except ValidationError as e:
+#                 form.add_error(None, e.message)
+#                 messages.error(request, "Validation error — please check your inputs.")
+#                 print("Validation error:", e)
 
-            except Exception as e:
-                messages.error(request, "An unexpected error occurred.")
-                print("Unexpected error:", e)
+#             except Exception as e:
+#                 messages.error(request, "An unexpected error occurred.")
+#                 print("Unexpected error:", e)
 
-        else:
-            messages.error(request, "Please correct the errors below.")
-            print("Form errors:", form.errors)
+#         else:
+#             messages.error(request, "Please correct the errors below.")
+#             print("Form errors:", form.errors)
 
-    else:
-        form = FundingForm()
+#     else:
+#         form = FundingForm()
 
-    return render(request, 'create_funding.html', {'form': form , 'profile': request.user.startup_profile})
-@login_required
-def update_funding(request, funding_id):
-    funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
+#     return render(request, 'create_funding.html', {'form': form , 'profile': request.user.startup_profile})
+# @login_required
+# def update_funding(request, funding_id):
+#     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
 
-    # Restrict updates if already approved
-    if funding.status == 'APPROVED':
-        messages.error(request, "You cannot update an approved funding request.")
-        return redirect('startup:funding_list')
+#     # Restrict updates if already approved
+#     if funding.status == 'APPROVED':
+#         messages.error(request, "You cannot update an approved funding request.")
+#         return redirect('startup:funding_list')
 
-    old_status = funding.status
+#     old_status = funding.status
 
-    if request.method == 'POST':
-        form = FundingForm(request.POST, instance=funding)
-        if form.is_valid():
-            updated_funding = form.save(commit=False)
-            updated_funding.startup = request.user.startup_profile
+#     if request.method == 'POST':
+#         form = FundingForm(request.POST, instance=funding)
+#         if form.is_valid():
+#             updated_funding = form.save(commit=False)
+#             updated_funding.startup = request.user.startup_profile
 
-            if old_status == 'REJECTED':
-                updated_funding.status = 'PENDING'
-                updated_funding.save()
+#             if old_status == 'REJECTED':
+#                 updated_funding.status = 'PENDING'
+#                 updated_funding.save()
 
-                # ✅ Log status change
-                funding.log_status_change(old_status, 'PENDING')
+#                 # ✅ Log status change
+#                 funding.log_status_change(old_status, 'PENDING')
 
-                # Notify investor
-                Notification.objects.create(
-                    user=updated_funding.investor.user,
-                    title="Funding Request Resubmitted",
-                    message=f"{updated_funding.startup.startup_name} has updated and resubmitted the funding request '{updated_funding.round_name}' for your review."
-                )
+#                 # Notify investor
+#                 Notification.objects.create(
+#                     user=updated_funding.investor.user,
+#                     title="Funding Request Resubmitted",
+#                     message=f"{updated_funding.startup.startup_name} has updated and resubmitted the funding request '{updated_funding.round_name}' for your review."
+#                 )
 
-                # Notify startup
-                Notification.objects.create(
-                    user=request.user,
-                    title="Funding Request Resent",
-                    message=f"Your funding request '{updated_funding.round_name}' has been resent to {updated_funding.investor.user.username}."
-                )
+#                 # Notify startup
+#                 Notification.objects.create(
+#                     user=request.user,
+#                     title="Funding Request Resent",
+#                     message=f"Your funding request '{updated_funding.round_name}' has been resent to {updated_funding.investor.user.username}."
+#                 )
 
-            else:
-                updated_funding.save()
-                funding.log_status_change(old_status, updated_funding.status)
+#             else:
+#                 updated_funding.save()
+#                 funding.log_status_change(old_status, updated_funding.status)
 
-            messages.success(request, "Funding request updated successfully.")
-            return redirect('startup:funding_list')
-    else:
-        form = FundingForm(instance=funding)
+#             messages.success(request, "Funding request updated successfully.")
+#             return redirect('startup:funding_list')
+#     else:
+#         form = FundingForm(instance=funding)
 
-    return render(request, 'update_funding.html', {
-        'form': form,
-        'update': True,
-        'funding': funding,
-        'profile': request.user.startup_profile
-    })
+#     return render(request, 'update_funding.html', {
+#         'form': form,
+#         'update': True,
+#         'funding': funding,
+#         'profile': request.user.startup_profile
+#     })
 
 
-@login_required
-def funding_detail(request, funding_id):
-    funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
-    return render(request, 'funding_detail.html', {'funding': funding , 'profile': request.user.startup_profile})
+# @login_required
+# def funding_detail(request, funding_id):
+#     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
+#     return render(request, 'funding_detail.html', {'funding': funding , 'profile': request.user.startup_profile})
 
-@login_required
-def delete_funding(request, funding_id):
-    funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
-    if request.method == 'POST':
-        funding.delete()
-        return redirect('startup:funding_list')
-    return render(request, 'delete_funding_confirm.html', {'funding': funding , 'profile': request.user.startup_profile})
+# @login_required
+# def delete_funding(request, funding_id):
+#     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
+#     if request.method == 'POST':
+#         funding.delete()
+#         return redirect('startup:funding_list')
+#     return render(request, 'delete_funding_confirm.html', {'funding': funding , 'profile': request.user.startup_profile})
 
 # -----------------------------
 # 8️⃣ Mentorship

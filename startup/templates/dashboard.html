@@ -30,15 +30,7 @@
     </div>
 
     <!-- Funding Card -->
-    <div class="card">
-        <h3>💰 Funding</h3>
-        <div class="card-stats">
-            <span>Requests: {{ funding_count }}</span>
-            <span>Approved: <span class="badge green">{{ funding_approved }}</span></span>
-            <span>Rejected: <span class="badge red">{{ funding_rejected }}</span></span>
-        </div>
-        <a href="#">View Funding →</a>
-    </div>
+    
 
     <!-- Mentorship Card -->
     <div class="card">
@@ -60,10 +52,6 @@
     <div class="chart-card">
         <h3>📊 Proposal Status</h3>
         <canvas id="proposalStatusChart"></canvas>
-    </div>
-    <div class="chart-card">
-        <h3>💰 Funding Status</h3>
-        <canvas id="fundingChart"></canvas>
     </div>
     <div class="chart-card">
         <h3>🎓 Mentorship Status</h3>
@@ -187,142 +175,88 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
 
-        const chartOptions = {
-            responsive: true,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-            plugins: { legend: { position: 'bottom' } }
-        };
-
-        // Get canvas contexts
-        const projectCtx = document.getElementById('projectStatusChart').getContext('2d');
-        const proposalCtx = document.getElementById('proposalStatusChart').getContext('2d');
-        const fundingCtx = document.getElementById('fundingChart').getContext('2d');
-        const mentorshipCtx = document.getElementById('mentorshipChart').getContext('2d');
-
-        // Create gradients
-        function createGradient(ctx, color) {
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, color + '80'); // semi-transparent top
-            gradient.addColorStop(1, color + '10'); // very light bottom
-            return gradient;
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            }
         }
-
-        const projectGradient = createGradient(projectCtx, '#1976d2');
-        const proposalGradient = createGradient(proposalCtx, '#e53935');
-        const fundingGradient = createGradient(fundingCtx, '#43a047');
-        const mentorshipGradient = createGradient(mentorshipCtx, '#fb8c00');
-
-        // Initialize charts with initial data
-        const charts = {
-            projects: new Chart(projectCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Planned', 'Ongoing', 'Completed'],
-                    datasets: [{
-                        label: 'Projects',
-                        data: [{{ projects_open }}, {{ projects_in_progress }}, {{ projects_completed }}],
-            borderColor: '#1976d2',
-            backgroundColor: projectGradient,
-            pointBackgroundColor: '#1976d2',
-            pointRadius: 5,
-            fill: true,
-            tension: 0.4
-    }]
-            },
-        options: chartOptions
-        }),
-        proposals: new Chart(proposalCtx, {
-            type: 'line',
-            data: {
-                labels: ['Submitted', 'Approved', 'Rejected'],
-                datasets: [{
-                    label: 'Proposals',
-                    data: [{{ proposals_count }}, {{ proposals_approved }}, {{ proposals_rejected }}],
-            borderColor: '#e53935',
-            backgroundColor: proposalGradient,
-            pointBackgroundColor: '#e53935',
-            pointRadius: 5,
-            fill: true,
-            tension: 0.4
-                }]
-            },
-            options: chartOptions
-        }),
-            funding: new Chart(fundingCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Requested', 'Approved', 'Rejected'],
-                    datasets: [{
-                        label: 'Funding',
-                        data: [{{ funding_count }}, {{ funding_approved }}, {{ funding_rejected }}],
-                borderColor: '#43a047',
-                backgroundColor: fundingGradient,
-                pointBackgroundColor: '#43a047',
-                pointRadius: 5,
-                fill: true,
-                tension: 0.4
-                }]
-            },
-                options: chartOptions
-        }),
-                mentorship: new Chart(mentorshipCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Scheduled', 'Completed'],
-                        datasets: [{
-                            label: 'Mentorship Sessions',
-                            data: [{{ mentorship_count }}, {{ mentorship_completed }}],
-                    borderColor: '#fb8c00',
-                    backgroundColor: mentorshipGradient,
-                    pointBackgroundColor: '#fb8c00',
-                    pointRadius: 5,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-                    options: chartOptions
-        })
     };
 
-    // Function to fetch live data
-    async function updateDashboard() {
-        try {
-            const response = await fetch("{% url 'startup:dashboard_data' %}");
-            const data = await response.json();
+    /* ========= PROJECT STATUS ========= */
+    const projectCtx = document.getElementById('projectStatusChart');
+    const projectChart = new Chart(projectCtx, {
+        type: 'line',
+        data: {
+            labels: ['Planned', 'Ongoing', 'Completed'],
+            datasets: [{
+                label: 'Projects',
+                data: [
+                    {{ projects_planned }},
+                    {{ projects_in_progress }},
+                    {{ projects_completed }}
+                ],
+                borderColor: '#1976d2',
+                backgroundColor: 'rgba(25,118,210,0.15)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+        options: commonOptions
+    });
 
-            charts.projects.data.datasets[0].data = [
-                data.projects.planned,
-                data.projects.ongoing,
-                data.projects.completed
-            ];
-            charts.proposals.data.datasets[0].data = [
-                data.proposals.submitted,
-                data.proposals.approved,
-                data.proposals.rejected
-            ];
-            charts.funding.data.datasets[0].data = [
-                data.funding.requested,
-                data.funding.approved,
-                data.funding.rejected
-            ];
-            charts.mentorship.data.datasets[0].data = [
-                data.mentorship.scheduled,
-                data.mentorship.completed
-            ];
+    /* ========= PROPOSAL STATUS ========= */
+    const proposalCtx = document.getElementById('proposalStatusChart');
+    const proposalChart = new Chart(proposalCtx, {
+        type: 'line',
+        data: {
+            labels: ['Submitted', 'Approved', 'Rejected'],
+            datasets: [{
+                label: 'Proposals',
+                data: [
+                    {{ proposals_count }},
+                    {{ proposals_approved }},
+                    {{ proposals_rejected }}
+                ],
+                borderColor: '#e53935',
+                backgroundColor: 'rgba(229,57,53,0.15)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+        options: commonOptions
+    });
 
-            // Update all charts
-            Object.values(charts).forEach(chart => chart.update());
+    /* ========= MENTORSHIP STATUS ========= */
+    const mentorshipCtx = document.getElementById('mentorshipChart');
+    const mentorshipChart = new Chart(mentorshipCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Scheduled', 'Completed'],
+            datasets: [{
+                label: 'Mentorship Sessions',
+                data: [
+                    {{ mentorship_count }},
+                    {{ mentorship_completed }}
+                ],
+                backgroundColor: ['#fb8c00', '#43a047']
+            }]
+        },
+        options: commonOptions
+    });
 
-        } catch (error) {
-            console.error("Dashboard update failed:", error);
-        }
-    }
-
-    // 🔁 Auto-update every 10 seconds
-    setInterval(updateDashboard, 10000);
 });
 </script>
 {% endblock %}

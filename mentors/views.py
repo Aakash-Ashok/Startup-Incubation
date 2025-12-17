@@ -26,15 +26,37 @@ class MentorSignupView(View):
 
 class MentorDashboardView(LoginRequiredMixin, View):
     def get(self, request):
-        mentor_profile = get_object_or_404(MentorProfile, user=request.user)
-        sessions = MentorshipSession.objects.filter(mentor=mentor_profile)
-        return render(request, 'mentor_dashboard.html', {'mentor_profile': mentor_profile, 'sessions': sessions})
+        mentor_profile = get_object_or_404(
+            MentorProfile,
+            user=request.user
+        )
+
+        sessions = MentorshipSession.objects.filter(
+            mentor=mentor_profile
+        )
+
+        # ✅ Active Requests = sessions not yet acted upon
+        active_requests = sessions.filter(
+            approval_status='PENDING'
+        ).count()
+
+        context = {
+            'mentor_profile': mentor_profile,
+            'sessions': sessions,
+            'active_requests': active_requests,
+        }
+
+        return render(
+            request,
+            'mentor_dashboard.html',
+            context
+        )
 
 class MentorshipSessionListView(LoginRequiredMixin, View):
     def get(self, request):
         mentor_profile = get_object_or_404(MentorProfile, user=request.user)
         sessions = MentorshipSession.objects.filter(mentor=mentor_profile)
-        return render(request, 'mentorship_sessions.html', {'sessions': sessions})
+        return render(request, 'mentorship_sessions.html', {'sessions': sessions , 'mentor_profile': mentor_profile,})
 
 class MentorshipSessionApproveView(LoginRequiredMixin, View):
     def post(self, request, session_id):

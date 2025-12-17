@@ -52,11 +52,11 @@ urlpatterns = [
     # -----------------------------
     # Funding Rounds
     # -----------------------------
-    path('funding/', views.funding_list, name='funding_list'),
-    path('funding/create/', views.create_funding, name='create_funding'),
-    path('funding/<int:funding_id>/', views.funding_detail, name='funding_detail'),
-    path('funding/<int:funding_id>/update/', views.update_funding, name='update_funding'),
-    path('funding/<int:funding_id>/delete/', views.delete_funding, name='delete_funding'),
+    # path('funding/', views.funding_list, name='funding_list'),
+    # path('funding/create/', views.create_funding, name='create_funding'),
+    # path('funding/<int:funding_id>/', views.funding_detail, name='funding_detail'),
+    # path('funding/<int:funding_id>/update/', views.update_funding, name='update_funding'),
+    # path('funding/<int:funding_id>/delete/', views.delete_funding, name='delete_funding'),
 
     # -----------------------------
     # Mentorship Sessions

@@ -140,25 +140,51 @@ def freelancer_profile_detail(request):
 @login_required
 @role_required('FREELANCER')
 def freelancer_profile_edit(request):
-    """Edit freelancer profile."""
-    profile = request.user.freelancer_profile
+    user = request.user
+    profile = user.freelancer_profile
 
     if request.method == 'POST':
-        form = FreelancerProfileForm(request.POST, request.FILES, instance=profile)
-        full_name = request.POST.get('full_name')
+        form = FreelancerProfileForm(
+            request.POST,
+            request.FILES,
+            instance=profile
+        )
+
+        # User fields (handled separately)
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+
         if form.is_valid():
-            prof = form.save(commit=False)
+            # Save profile
+            profile = form.save(commit=False)
+
+            # Sync full_name safely
+            full_name = f"{first_name} {last_name}".strip()
             if full_name:
                 profile.full_name = full_name
-            prof.save()
+
+            profile.save()
+
+            # Save user fields
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save(update_fields=['first_name', 'last_name'])
+
             messages.success(request, "Profile updated successfully.")
             return redirect('freelancer:freelancer_profile_detail')
         else:
-            messages.error(request, "Please fix the errors below.")
+            messages.error(request, "Please correct the errors below.")
     else:
         form = FreelancerProfileForm(instance=profile)
 
-    return render(request, 'profile_edit.html', {'form': form, 'profile': profile})
+    return render(
+        request,
+        'profile_edit.html',
+        {
+            'form': form,
+            'profile': profile
+        }
+    )
 
 
 # ----------------------------------------
@@ -473,44 +499,84 @@ def update_milestone(request, milestone_id):
 @login_required
 @role_required('FREELANCER')
 def freelancer_notifications(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'freelancer/notifications.html', {'notifications': notifications})
+    notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    return render(
+        request,
+        'notifications.html',
+        {'notifications': notifications}
+    )
 
 
-@login_required
-@role_required('FREELANCER')
-def feedback_list(request):
-    feedbacks = Feedback.objects.filter(freelancer=request.user.freelancer_profile)
-    return render(request, 'freelancer/feedback_list.html', {'feedbacks': feedbacks})
 
 
+
+
+
+# ----------------------------------------
+# Milestone Views (Corrected)
+# ----------------------------------------
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
 from .models import Milestone, FreelancerProfile
-from projects.models import Project
 from .forms import MilestoneForm
+from projects.models import Project
 from accounts.models import Notification
 
 
-# ------------------------------------------------
+# ----------------------------------------
 # LIST MILESTONES FOR A PROJECT
-# ------------------------------------------------
+# ----------------------------------------
 @login_required
+@role_required('FREELANCER')
 def milestone_list(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    milestones = Milestone.objects.filter(project=project, freelancer=request.user.freelancer_profile)
-    return render(request, 'freelancer/milestone_list.html', {'project': project, 'milestones': milestones})
-
-
-# ------------------------------------------------
-# CREATE NEW MILESTONE
-# ------------------------------------------------
-@login_required
-def create_milestone(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
     freelancer = request.user.freelancer_profile
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        assignment__freelancer=freelancer,
+        assignment__is_active=True
+    )
+
+    milestones = Milestone.objects.filter(
+        project=project,
+        freelancer=freelancer
+    )
+
+    return render(
+        request,
+        'milestone_list.html',
+        {
+            'project': project,
+            'milestones': milestones
+        }
+    )
+
+
+# ----------------------------------------
+# CREATE NEW MILESTONE
+# ----------------------------------------
+@login_required
+@role_required('FREELANCER')
+def create_milestone(request, project_id):
+    freelancer = request.user.freelancer_profile
+
+    project = get_object_or_404(
+        Project,
+        id=project_id,
+        assignment__freelancer=freelancer,
+        assignment__is_active=True
+    )
+
+    if project.status == 'COMPLETED':
+        messages.error(request, "Cannot add milestones to a completed project.")
+        return redirect('freelancer:freelancer_milestones', project_id=project.id)
 
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
@@ -520,69 +586,113 @@ def create_milestone(request, project_id):
             milestone.freelancer = freelancer
             milestone.save()
 
-            # Notify startup about new milestone
             Notification.objects.create(
                 user=project.startup.user,
-                title="New Milestone Created",
-                message=f"{freelancer.full_name} added a new milestone '{milestone.title}' for project '{project.title}'."
+                title="New Milestone Added",
+                message=f"{freelancer.full_name} added milestone '{milestone.title}' for project '{project.name}'."
             )
 
             messages.success(request, "Milestone created successfully.")
-            return redirect('milestone_list', project_id=project.id)
+            return redirect('freelancer:freelancer_milestones', project_id=project.id)
     else:
         form = MilestoneForm()
 
-    return render(request, 'freelancer/milestone_form.html', {'form': form, 'project': project, 'create': True})
+    return render(
+        request,
+        'milestone_form.html',
+        {
+            'form': form,
+            'project': project,
+            'create': True
+        }
+    )
 
 
-# ------------------------------------------------
+# ----------------------------------------
 # UPDATE MILESTONE
-# ------------------------------------------------
+# ----------------------------------------
 @login_required
+@role_required('FREELANCER')
 def update_milestone(request, milestone_id):
-    milestone = get_object_or_404(Milestone, id=milestone_id, freelancer=request.user.freelancer_profile)
+    freelancer = request.user.freelancer_profile
+
+    milestone = get_object_or_404(
+        Milestone,
+        id=milestone_id,
+        freelancer=freelancer,
+        project__assignment__freelancer=freelancer
+    )
+
     project = milestone.project
+
+    if project.status == 'COMPLETED':
+        messages.error(request, "Cannot update milestones of a completed project.")
+        return redirect('freelancer:freelancer_milestones', project_id=project.id)
 
     if request.method == 'POST':
         form = MilestoneForm(request.POST, instance=milestone)
         if form.is_valid():
             updated = form.save(commit=False)
 
-            # Auto update status
-            if updated.progress == 100:
+            # Auto status sync
+            if updated.progress >= 100:
+                updated.progress = 100
                 updated.status = 'COMPLETED'
 
-                # Notify startup
                 Notification.objects.create(
                     user=project.startup.user,
                     title="Milestone Completed",
-                    message=f"{milestone.freelancer.full_name} marked the milestone '{milestone.title}' as completed."
+                    message=f"{freelancer.full_name} completed milestone '{updated.title}'."
                 )
+            elif updated.progress > 0:
+                updated.status = 'IN_PROGRESS'
+            else:
+                updated.status = 'PENDING'
 
             updated.save()
             messages.success(request, "Milestone updated successfully.")
-            return redirect('milestone_list', project_id=project.id)
+            return redirect('freelancer:freelancer_milestones', project_id=project.id)
     else:
         form = MilestoneForm(instance=milestone)
 
-    return render(request, 'freelancer/milestone_form.html', {
-        'form': form,
-        'project': project,
-        'update': True,
-        'milestone': milestone
-    })
+    return render(
+        request,
+        'milestone_form.html',
+        {
+            'form': form,
+            'project': project,
+            'milestone': milestone,
+            'update': True
+        }
+    )
 
 
-# ------------------------------------------------
+# ----------------------------------------
 # DELETE MILESTONE
-# ------------------------------------------------
+# ----------------------------------------
 @login_required
+@role_required('FREELANCER')
 def delete_milestone(request, milestone_id):
-    milestone = get_object_or_404(Milestone, id=milestone_id, freelancer=request.user.freelancer_profile)
+    freelancer = request.user.freelancer_profile
+
+    milestone = get_object_or_404(
+        Milestone,
+        id=milestone_id,
+        freelancer=freelancer,
+        project__assignment__freelancer=freelancer
+    )
+
     project_id = milestone.project.id
+
+    if milestone.project.status == 'COMPLETED':
+        messages.error(request, "Cannot delete milestones from a completed project.")
+        return redirect('freelancer:freelancer_milestones', project_id=project_id)
+
     milestone.delete()
     messages.success(request, "Milestone deleted successfully.")
-    return redirect('milestone_list', project_id=project_id)
+
+    return redirect('freelancer:freelancer_milestones', project_id=project_id)
+
 
 
 @login_required

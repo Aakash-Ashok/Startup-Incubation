@@ -22,7 +22,7 @@
             <p><strong>Submitted:</strong> {{ p.submitted_at|date:"M d, Y H:i" }}</p>
 
             {% if p.status == 'REJECTED' and not p.project.assigned_freelancer %}
-            <a href="{% url 'freelancer:submit_proposal' p.project.id %}" class="btn resubmit-btn">🔄 Resubmit</a>
+            <a href="{% url 'freelancer:freelancer_submit_proposal' p.project.id %}" class="btn resubmit-btn">🔄 Resubmit</a>
             {% endif %}
         </div>
         {% endfor %}

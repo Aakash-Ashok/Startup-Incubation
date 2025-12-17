@@ -355,7 +355,7 @@
                     {% else %}
                     <img src="/media/freelancers/ic_launcher.png" alt="Profile" loading="lazy">
                     {% endif %}
-                    <span>{{ request.user.freelancer_profile.full_name|default:request.user.username }}</span>
+                    <span>{{ request.user.freelancer_profile.full_name }}</span>
                 </div>
                 <a href="{% url 'logout' %}" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
             </div>

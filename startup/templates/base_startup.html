@@ -219,10 +219,7 @@
                     <a href="{% url 'startup:project_proposals' %}"
                         class="{% if '/startup/proposals/' in request.path %}active{% endif %}">📝 Proposals</a>
                 </li>
-                <li>
-                    <a href="{% url 'startup:funding_list' %}"
-                        class="{% if '/startup/funding/' in request.path %}active{% endif %}">💰 Funding</a>
-                </li>
+                
                 <li>
                     <a href="{% url 'startup:startup_sessions' %}"
                         class="{% if '/startup/sessions/' in request.path %}active{% endif %}">🎓 Mentorship</a>
