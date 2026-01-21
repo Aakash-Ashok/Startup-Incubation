@@ -26,7 +26,7 @@
             <span>Approved: <span class="badge green">{{ proposals_approved }}</span></span>
             <span>Rejected: <span class="badge red">{{ proposals_rejected }}</span></span>
         </div>
-        <a href="#">View Proposals →</a>
+        <a href="{% url 'startup:project_proposals' %}">View Proposals →</a>
     </div>
 
     <!-- Funding Card -->
@@ -39,7 +39,7 @@
             <span>Scheduled: {{ mentorship_count }}</span>
             <span>Completed: <span class="badge green">{{ mentorship_completed }}</span></span>
         </div>
-        <a href="#">View Sessions →</a>
+        <a href="{% url 'startup:startup_sessions' %}">View Sessions →</a>
     </div>
 </section>
 

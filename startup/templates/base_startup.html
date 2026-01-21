@@ -208,6 +208,13 @@
                     class="{% if request.path == '/startup/dashboard/' or request.path == '/startup/dashboard/' %}active{% endif %}">🏠 Dashboard</a>
                 </li>
                 <li>
+                <a href="{% url 'startup:stprofile_detail' %}"
+                class="{% if '/startup/profile/' in request.path %}active{% endif %}">
+                🏢 My Profile
+                </a>
+                </li>
+
+                <li>
                     <a href="{% url 'startup:startup_projects' %}"
                         class="{% if '/startup/projects/' in request.path %}active{% endif %}">📂 Projects</a>
                 </li>
@@ -238,7 +245,12 @@
         <!-- Header -->
         <header>
             <div class="header-left">
-                <img src="{{ profile.logo.url|default:'/accounts/static/images/logo.png' }}" alt="Logo">
+                {% if profile.logo %}
+                    <img src="{{ profile.logo.url }}" alt="Logo">
+                {% else %}
+                    <img src="{% static 'images/logo.png' %}" alt="Logo">
+                {% endif %}
+
                 <h1>Welcome, {{ profile.startup_name }}</h1>
             </div>
             <div class="header-right notification">

@@ -63,7 +63,38 @@ def startup_signup(request):
 @login_required
 def profile_detail(request):
     profile = request.user.startup_profile
-    return render(request, 'startup/profile_detail.html', {'profile': profile})
+    return render(request, 'sprofile_detail.html', {'profile': profile})
+
+@login_required
+def profile_edit(request):
+    profile = request.user.startup_profile
+
+    if request.method == 'POST':
+        form = StartupProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            profile = form.save(commit=False)
+
+            # Optional: upload logo to Supabase (same logic as signup)
+            logo_file = request.FILES.get('logo')
+            if logo_file:
+                try:
+                    logo_url = upload_to_supabase(logo_file, folder='startups')
+                    if logo_url:
+                        profile.logo = logo_url
+                except Exception as e:
+                    print("Logo upload failed:", e)
+
+            profile.save()
+            messages.success(request, "✅ Profile updated successfully")
+            return redirect('startup:stprofile_detail')
+    else:
+        form = StartupProfileForm(instance=profile)
+
+    return render(request, 'sprofile_edit.html', {
+        'form': form,
+        'profile': profile
+    })
+
 
 # -----------------------------
 # 2️⃣ Dashboard
@@ -348,7 +379,7 @@ def add_employee(request):
             employee = form.save(commit=False)
             employee.startup = request.user.startup_profile
             employee.save()
-            return redirect('startup_employees')
+            return redirect('startup:startup_employees')
     else:
         form = EmployeeForm()
     return render(request, 'add_employee.html', {'form': form, 'profile': request.user.startup_profile})

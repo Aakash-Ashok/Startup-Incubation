@@ -61,18 +61,18 @@ class ProjectAssignment(models.Model):
     
     
 
-class Task(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks")
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True, null=True)
-    assigned_to_freelancer = models.ForeignKey(FreelancerProfile, null=True, blank=True, on_delete=models.SET_NULL)
-    assigned_to_employee = models.CharField(max_length=200, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=[
-        ('PENDING','Pending'),
-        ('ONGOING','Ongoing'),
-        ('COMPLETED','Completed')
-    ], default='PENDING')
-    deadline = models.DateField(blank=True, null=True)
+# class Task(models.Model):
+#     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="tasks")
+#     name = models.CharField(max_length=200)
+#     description = models.TextField(blank=True, null=True)
+#     assigned_to_freelancer = models.ForeignKey(FreelancerProfile, null=True, blank=True, on_delete=models.SET_NULL)
+#     assigned_to_employee = models.CharField(max_length=200, blank=True, null=True)
+#     status = models.CharField(max_length=20, choices=[
+#         ('PENDING','Pending'),
+#         ('ONGOING','Ongoing'),
+#         ('COMPLETED','Completed')
+#     ], default='PENDING')
+#     deadline = models.DateField(blank=True, null=True)
 
-    def __str__(self):
-        return f"{self.name} ({self.project.name})"
+#     def __str__(self):
+#         return f"{self.name} ({self.project.name})"

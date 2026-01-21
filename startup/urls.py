@@ -9,7 +9,10 @@ urlpatterns = [
     path('signup/', views.startup_signup, name='startup_signup'),
     path('dashboard/', views.startup_dashboard, name='startup_dashboard'),
     path('dashboard/data/', views.dashboard_data, name='dashboard_data'),
-    path('profile/', views.profile_detail, name='profile_detail'),
+    path('profile/', views.profile_detail, name='stprofile_detail'),
+    path('profile/edit/', views.profile_edit, name='sprofile_edit'),
+
+    
 
     # -----------------------------
     # Projects CRUD

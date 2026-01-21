@@ -39,19 +39,31 @@ def freelancer_signup(request):
     if request.method == 'POST':
         user_form = FreelancerSignupForm(request.POST)
         profile_form = FreelancerProfileForm(request.POST, request.FILES)
+
         if user_form.is_valid() and profile_form.is_valid():
-            user = user_form.save()
+            user = user_form.save(commit=False)
+            user.role = 'FREELANCER'
+            user.save()
+
             profile = profile_form.save(commit=False)
             profile.user = user
             profile.save()
+
             login(request, user)
-            return redirect('freelancer:freelancer_dashboard')  # ✅ corrected redirect
+            return redirect('freelancer:freelancer_dashboard')
+
         else:
-            print("❌ Form errors:", user_form.errors, profile_form.errors)
+            print("❌ USER ERRORS:", user_form.errors)
+            print("❌ PROFILE ERRORS:", profile_form.errors)
+
     else:
         user_form = FreelancerSignupForm()
         profile_form = FreelancerProfileForm()
-    return render(request, 'freelancersignup.html', {'user_form': user_form, 'profile_form': profile_form})
+
+    return render(request, 'freelancersignup.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })
 
 
 

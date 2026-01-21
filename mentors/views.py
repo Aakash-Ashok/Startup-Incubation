@@ -97,12 +97,21 @@ class MentorProfileEditView(LoginRequiredMixin, View):
     def get(self, request):
         mentor_profile = get_object_or_404(MentorProfile, user=request.user)
         form = MentorProfileForm(instance=mentor_profile)
-        return render(request, 'mentor_profile_edit.html', {'form': form})
+        return render(request, 'mentor_profile_edit.html', {
+            'form': form,
+            'mentor_profile': mentor_profile
+        })
 
     def post(self, request):
         mentor_profile = get_object_or_404(MentorProfile, user=request.user)
         form = MentorProfileForm(request.POST, request.FILES, instance=mentor_profile)
+
         if form.is_valid():
             form.save()
             return redirect('mentors:mentor_profile')
-        return render(request, 'mentor_profile_edit.html', {'form': form})
+
+        return render(request, 'mentor_profile_edit.html', {
+            'form': form,
+            'mentor_profile': mentor_profile
+        })
+
